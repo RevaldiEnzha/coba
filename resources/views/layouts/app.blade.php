@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Laundry</title>
+    <link rel="stylesheet" href="{{ asset('css/laundry.css') }}">
+</head>
+<body class="app-body">
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">L</div>
+                <span>Laundry System</span>
+            </div>
+
+            <nav class="sidebar-menu">
+                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <span class="menu-icon">▦</span>
+                    Dashboard
+                </a>
+
+                <a href="#">
+                    <span class="menu-icon">👥</span>
+                    Manajemen Pelanggan
+                </a>
+
+                <a href="#">
+                    <span class="menu-icon">▣</span>
+                    Manajemen Transaksi
+                </a>
+
+                <a href="#">
+                    <span class="menu-icon">◇</span>
+                    Order Tracking
+                </a>
+
+                <a href="#">
+                    <span class="menu-icon">▭</span>
+                    Pembayaran
+                </a>
+
+                @if(auth()->user()->role === 'admin')
+                    <a href="#">
+                        <span class="menu-icon">▤</span>
+                        Laporan Keuangan
+                    </a>
+                @endif
+            </nav>
+
+            <form method="POST" action="{{ route('logout') }}" class="logout-area">
+                @csrf
+                <button type="submit">
+                    <span class="menu-icon">↪</span>
+                    Keluar
+                </button>
+            </form>
+        </aside>
+
+        <main class="main-content">
+            @yield('content')
+        </main>
+    </div>
+</body>
+</html>
