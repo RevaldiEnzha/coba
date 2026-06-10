@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Customer;
+use Carbon\Carbon;
+
 class DashboardController extends Controller
 {
     public function index()
@@ -10,23 +14,44 @@ class DashboardController extends Controller
             abort(403, 'Akses dashboard hanya untuk Admin/Kasir.');
         }
 
+        $totalCustomers = Customer::count();
+
+        // Belum ada modul transaksi
+        $todayTransactions = 0;
+
+        // Belum ada modul order
+        $activeOrders = 0;
+
+        // Belum ada modul pembayaran/invoice
+        $monthlyIncome = 0;
+
+        $weeklyRevenue = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+
+            $date = Carbon::today()->subDays($i);
+
+            $count = Customer::whereDate(
+                'created_at',
+                $date
+            )->count();
+
+            $weeklyRevenue[] = [
+                'day' => $date->translatedFormat('D'),
+                'value' => $count,
+            ];
+        }
+
         $stats = [
-            'total_customers' => '1,234',
-            'today_transactions' => '42',
-            'active_orders' => '87',
-            'monthly_income' => 'Rp 45,2M',
+            'total_customers' => $totalCustomers,
+            'today_transactions' => $todayTransactions,
+            'active_orders' => $activeOrders,
+            'monthly_income' => $monthlyIncome,
         ];
 
-        $weeklyRevenue = [
-            ['day' => 'Sen', 'value' => 2400],
-            ['day' => 'Sel', 'value' => 1400],
-            ['day' => 'Rab', 'value' => 10000],
-            ['day' => 'Kam', 'value' => 3900],
-            ['day' => 'Jum', 'value' => 4800],
-            ['day' => 'Sab', 'value' => 3800],
-            ['day' => 'Min', 'value' => 4300],
-        ];
-
-        return view('dashboard.index', compact('stats', 'weeklyRevenue'));
+        return view(
+            'dashboard.index',
+            compact('stats', 'weeklyRevenue')
+        );
     }
 }
