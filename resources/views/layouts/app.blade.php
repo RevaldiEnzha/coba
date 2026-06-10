@@ -20,7 +20,8 @@
                     Dashboard
                 </a>
 
-                <a href="#">
+                <a href="{{ route('customers.index') }}" 
+                class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
                     <span class="menu-icon">👥</span>
                     Manajemen Pelanggan
                 </a>

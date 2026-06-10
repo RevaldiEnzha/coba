@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CustomerController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -23,3 +24,12 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::get('/portal', function () {
     return 'Login berhasil. Ini halaman portal pelanggan sementara.';
 })->middleware('auth')->name('portal.dashboard');
+
+Route::middleware('auth')->group(function () {
+
+    Route::resource(
+        'customers',
+        CustomerController::class
+    );
+
+});
