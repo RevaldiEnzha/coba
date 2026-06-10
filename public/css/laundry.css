@@ -927,3 +927,325 @@ textarea.form-control {
         flex-direction: column;
     }
 }
+
+/* =========================
+   CUSTOMER MANAGEMENT PAGE
+========================= */
+
+.customer-page-header h1 {
+    font-size: 34px;
+    margin-bottom: 8px;
+}
+
+.customer-page-header p {
+    margin-bottom: 28px;
+}
+
+.customer-toolbar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+}
+
+.customer-search-form {
+    margin: 0;
+}
+
+.customer-search-box {
+    width: 420px;
+    height: 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 13px;
+}
+
+.customer-search-box .search-icon {
+    color: #94a3b8;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.customer-search-box input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: none;
+    font-size: 14px;
+    color: #334155;
+    background: transparent;
+}
+
+.customer-search-box input::placeholder {
+    color: #94a3b8;
+}
+
+.customer-add-btn {
+    height: 42px;
+    background: #0ea5e9;
+    color: #ffffff;
+    padding: 0 20px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.customer-add-btn:hover {
+    background: #0284c7;
+}
+
+.customer-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.customer-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.customer-table thead th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    text-align: left;
+    padding: 17px 22px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.customer-table tbody td {
+    padding: 19px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.customer-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.customer-table tbody td:first-child {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.customer-action {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.customer-action form {
+    margin: 0;
+}
+
+.edit-action {
+    color: #0ea5e9;
+    font-size: 16px;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.delete-action {
+    border: 0;
+    background: transparent;
+    color: #ef4444;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.empty-row {
+    text-align: center;
+    color: #64748b;
+    padding: 28px !important;
+}
+
+/* responsive customer table */
+@media (max-width: 900px) {
+    .customer-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .customer-search-form,
+    .customer-search-box,
+    .customer-add-btn {
+        width: 100%;
+    }
+
+    .customer-add-btn {
+        justify-content: center;
+    }
+
+    .customer-table-card {
+        overflow-x: auto;
+    }
+
+    .customer-table {
+        min-width: 900px;
+    }
+}
+
+/* 
+   CUSTOMER MODAL FORM
+ */
+
+.modal-open {
+    overflow: hidden;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.customer-modal-card {
+    width: 100%;
+    max-width: 430px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.22);
+    padding: 18px 18px 16px;
+}
+
+.customer-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.customer-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.modal-close-btn {
+    border: 0;
+    background: transparent;
+    font-size: 26px;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+}
+
+.customer-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.modal-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.modal-form-group input,
+.modal-form-group textarea {
+    width: 100%;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+}
+
+.modal-form-group input {
+    height: 44px;
+}
+
+.modal-form-group textarea {
+    min-height: 92px;
+    resize: none;
+}
+
+.modal-form-group input:focus,
+.modal-form-group textarea:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.10);
+}
+
+.customer-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.modal-cancel-btn {
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid #dbe2ea;
+    background: #ffffff;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-submit-btn {
+    height: 42px;
+    border-radius: 10px;
+    border: 0;
+    background: #0ea5e9;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.modal-submit-btn:hover {
+    background: #0284c7;
+}
+
+.edit-action {
+    border: 0;
+    background: transparent;
+    color: #0ea5e9;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
