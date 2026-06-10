@@ -33,7 +33,7 @@
     </section>
 
     <section class="chart-card">
-        <h3>Pendapatan Minggu Ini</h3>
+        <h3>Pelanggan baru Minggu Ini</h3>
 
         <div class="line-chart">
             <svg viewBox="0 0 980 260" preserveAspectRatio="none">

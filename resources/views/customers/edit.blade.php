@@ -3,8 +3,8 @@
 @section('content')
 
 <section class="page-header">
-    <h1>Tambah Pelanggan</h1>
-    <p>Tambahkan data pelanggan baru</p>
+    <h1>Edit Pelanggan</h1>
+    <p>Perbarui data pelanggan laundry</p>
 </section>
 
 <div class="card form-card">

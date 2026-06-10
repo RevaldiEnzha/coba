@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\LaundryOrderController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -17,19 +18,15 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.pr
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware('auth')
-    ->name('dashboard');
+Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::resource('customers', CustomerController::class);
+    
+    Route::resource('orders', LaundryOrderController::class)
+        ->only(['index', 'create', 'store', 'show']);
+});
 
 Route::get('/portal', function () {
     return 'Login berhasil. Ini halaman portal pelanggan sementara.';
-})->middleware('auth')->name('portal.dashboard');
-
-Route::middleware('auth')->group(function () {
-
-    Route::resource(
-        'customers',
-        CustomerController::class
-    );
-
-});
+})->middleware(['auth', 'role:pelanggan'])->name('portal.dashboard');

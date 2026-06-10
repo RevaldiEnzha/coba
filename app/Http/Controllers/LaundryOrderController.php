@@ -1,0 +1,108 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Customer;
+use App\Models\Service;
+use App\Models\LaundryOrder;
+use App\Models\Invoice;
+use App\Models\OrderStatusHistory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+class LaundryOrderController extends Controller
+{
+    public function index()
+    {
+        $orders = LaundryOrder::with(['customer.user', 'service', 'cashier'])
+            ->latest()
+            ->get();
+
+        return view('orders.index', compact('orders'));
+    }
+
+    public function create()
+    {
+        $customers = Customer::with('user')->latest()->get();
+        $services = Service::where('is_active', true)->get();
+
+        return view('orders.create', compact('customers', 'services'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_id' => ['required', 'exists:customers,id'],
+            'service_id' => ['required', 'exists:services,id'],
+            'weight' => ['nullable', 'numeric', 'min:0'],
+            'quantity' => ['nullable', 'integer', 'min:1'],
+            'delivery_option' => ['required', 'in:ambil_sendiri,antar'],
+            'order_source' => ['required', 'in:outlet,portal'],
+        ]);
+
+        $service = Service::findOrFail($validated['service_id']);
+
+        $amountBase = $service->type === 'kiloan'
+            ? ($validated['weight'] ?? 0)
+            : ($validated['quantity'] ?? 0);
+
+        if ($amountBase <= 0) {
+            return back()
+                ->withErrors(['weight' => 'Masukkan berat atau jumlah cucian sesuai jenis layanan.'])
+                ->withInput();
+        }
+
+        $subtotal = $amountBase * $service->price;
+        $deliveryFee = $validated['delivery_option'] === 'antar' ? 5000 : 0;
+        $discount = 0;
+        $total = $subtotal + $deliveryFee - $discount;
+
+        DB::transaction(function () use ($validated, $service, $subtotal, $deliveryFee, $discount, $total) {
+            $order = LaundryOrder::create([
+                'order_code' => 'ORD-' . now()->format('YmdHis'),
+                'customer_id' => $validated['customer_id'],
+                'service_id' => $validated['service_id'],
+                'cashier_id' => Auth::id(),
+                'weight' => $validated['weight'] ?? null,
+                'quantity' => $validated['quantity'] ?? null,
+                'subtotal' => $subtotal,
+                'delivery_fee' => $deliveryFee,
+                'discount' => $discount,
+                'total_price' => $total,
+                'order_source' => $validated['order_source'],
+                'delivery_option' => $validated['delivery_option'],
+                'status' => 'diterima',
+                'payment_status' => 'belum_bayar',
+            ]);
+
+            Invoice::create([
+                'laundry_order_id' => $order->id,
+                'invoice_code' => 'INV-' . now()->format('YmdHis'),
+                'subtotal' => $subtotal,
+                'delivery_fee' => $deliveryFee,
+                'point_discount' => $discount,
+                'total_amount' => $total,
+                'status' => 'unpaid',
+                'issued_at' => now(),
+            ]);
+
+            OrderStatusHistory::create([
+                'laundry_order_id' => $order->id,
+                'user_id' => Auth::id(),
+                'status' => 'diterima',
+                'note' => 'Order laundry dibuat oleh kasir/admin.',
+            ]);
+        });
+
+        return redirect()
+            ->route('orders.index')
+            ->with('success', 'Transaksi laundry berhasil dibuat.');
+    }
+
+    public function show(LaundryOrder $order)
+    {
+        $order->load(['customer.user', 'service', 'cashier', 'invoice', 'statusHistories']);
+
+        return view('orders.show', compact('order'));
+    }
+}

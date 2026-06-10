@@ -20,13 +20,13 @@
                     Dashboard
                 </a>
 
-                <a href="{{ route('customers.index') }}" 
+                <a href="{{ route('customers.index') }}"
                 class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
                     <span class="menu-icon">👥</span>
                     Manajemen Pelanggan
                 </a>
 
-                <a href="#">
+                <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders.*') ? 'active' : '' }}">
                     <span class="menu-icon">▣</span>
                     Manajemen Transaksi
                 </a>
