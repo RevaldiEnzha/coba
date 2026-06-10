@@ -31,7 +31,7 @@
                     Manajemen Transaksi
                 </a>
 
-                <a href="#">
+                <a href="{{ route('tracking.index') }}" class="{{ request()->routeIs('tracking.*') ? 'active' : '' }}">
                     <span class="menu-icon">◇</span>
                     Order Tracking
                 </a>

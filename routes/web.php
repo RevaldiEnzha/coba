@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LaundryOrderController;
+use App\Http\Controllers\TrackingController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -22,9 +23,12 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('customers', CustomerController::class);
-    
+
     Route::resource('orders', LaundryOrderController::class)
         ->only(['index', 'create', 'store', 'show']);
+
+    Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
+    Route::patch('/tracking/{order}', [TrackingController::class, 'updateStatus'])->name('tracking.update');
 });
 
 Route::get('/portal', function () {

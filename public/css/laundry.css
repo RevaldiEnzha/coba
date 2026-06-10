@@ -797,3 +797,133 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
 }
+
+.filter-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-select {
+    width: 260px;
+}
+
+.tracking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.tracking-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.tracking-card-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.tracking-card-header h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.tracking-card-header p {
+    margin: 0;
+    color: #64748b;
+}
+
+.tracking-steps {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.tracking-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.step-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tracking-step.active {
+    color: #0284c7;
+}
+
+.tracking-step.active .step-circle {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+    color: #ffffff;
+}
+
+.tracking-update-form {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.tracking-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.empty-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 28px;
+    color: #64748b;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .tracking-steps {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 560px) {
+    .tracking-steps {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tracking-card-header {
+        flex-direction: column;
+    }
+
+    .tracking-actions {
+        flex-direction: column;
+    }
+}
