@@ -35,7 +35,7 @@
                     Order Tracking
                 </a>
 
-                <a href="#">
+                <a href="{{ route('payments.index') }}">
                     <span class="menu-icon">▭</span>
                     Pembayaran
                 </a>
