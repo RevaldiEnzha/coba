@@ -18,15 +18,21 @@ class LaundryOrderController extends Controller
             ->latest()
             ->get();
 
-        return view('orders.index', compact('orders'));
+        $customers = Customer::with('user')
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'pelanggan');
+            })
+            ->latest()
+            ->get();
+
+        $services = Service::where('is_active', true)->get();
+
+        return view('orders.index', compact('orders', 'customers', 'services'));
     }
 
     public function create()
     {
-        $customers = Customer::with('user')->latest()->get();
-        $services = Service::where('is_active', true)->get();
-
-        return view('orders.create', compact('customers', 'services'));
+        return redirect()->route('orders.index');
     }
 
     public function store(Request $request)

@@ -7,41 +7,41 @@ use App\Models\OrderStatusHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class TrackingController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = LaundryOrder::with(['customer.user', 'service', 'cashier'])
-            ->latest();
+        $orders = LaundryOrder::with(['customer.user', 'service'])
+            ->latest()
+            ->get();
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        $statusOptions = [
+            'diterima' => 'Masuk',
+            'dicuci' => 'Sedang Dicuci',
+            'dijemur' => 'Pengeringan',
+            'disetrika' => 'Setrika',
+            'siap_diambil' => 'Siap Diambil',
+            'selesai' => 'Selesai',
+        ];
 
-        $orders = $query->get();
+        return view('tracking.index', compact('orders', 'statusOptions'));
+    }
 
-        $statuses = [
+    public function updateStatus(Request $request, LaundryOrder $order)
+    {
+        $statusOptions = [
             'diterima',
             'dicuci',
             'dijemur',
             'disetrika',
             'siap_diambil',
             'selesai',
-            'dibatalkan',
         ];
 
-        return view('tracking.index', compact('orders', 'statuses'));
-    }
-
-    public function updateStatus(Request $request, LaundryOrder $order)
-    {
         $validated = $request->validate([
-            'status' => [
-                'required',
-                'in:diterima,dicuci,dijemur,disetrika,siap_diambil,selesai,dibatalkan',
-            ],
-            'note' => ['nullable', 'string', 'max:500'],
+            'status' => ['required', Rule::in($statusOptions)],
         ]);
 
         DB::transaction(function () use ($order, $validated) {
@@ -53,12 +53,12 @@ class TrackingController extends Controller
                 'laundry_order_id' => $order->id,
                 'user_id' => Auth::id(),
                 'status' => $validated['status'],
-                'note' => $validated['note'] ?? 'Status cucian diperbarui.',
+                'note' => 'Status order diperbarui melalui halaman Order Tracking.',
             ]);
         });
 
         return redirect()
             ->route('tracking.index')
-            ->with('success', 'Status cucian berhasil diperbarui.');
+            ->with('success', 'Status order berhasil diperbarui.');
     }
 }

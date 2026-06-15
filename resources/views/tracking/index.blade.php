@@ -1,92 +1,102 @@
 @extends('layouts.app')
 
 @section('content')
-<section class="page-header">
+<section class="page-header tracking-page-header">
     <h1>Order Tracking</h1>
-    <p>Pantau dan perbarui status pengerjaan cucian pelanggan</p>
+    <p>Pantau dan update status order laundry</p>
 </section>
 
 @if(session('success'))
     <div class="alert-success">{{ session('success') }}</div>
 @endif
 
-<div class="toolbar-card">
-    <form method="GET" action="{{ route('tracking.index') }}" class="filter-form">
-        <select name="status" class="form-control filter-select">
-            <option value="">Semua Status</option>
-            @foreach($statuses as $status)
-                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
-                    {{ ucwords(str_replace('_', ' ', $status)) }}
-                </option>
-            @endforeach
-        </select>
+<div class="tracking-table-card">
+    <table class="tracking-table">
+        <thead>
+            <tr>
+                <th>No. Order</th>
+                <th>Nama Pelanggan</th>
+                <th>Layanan</th>
+                <th>Tanggal Masuk</th>
+                <th>Estimasi Selesai</th>
+                <th>Status Saat Ini</th>
+                <th>Update Status</th>
+            </tr>
+        </thead>
 
-        <button type="submit" class="btn-internal-primary">Filter</button>
-
-        <a href="{{ route('tracking.index') }}" class="btn-cancel">Reset</a>
-    </form>
-</div>
-
-<div class="tracking-list">
-    @forelse($orders as $order)
-        <div class="tracking-card">
-            <div class="tracking-card-header">
-                <div>
-                    <h3>{{ $order->order_code }}</h3>
-                    <p>{{ $order->customer->user->name ?? '-' }} • {{ $order->service->name ?? '-' }}</p>
-                </div>
-
-                <span class="badge {{ $order->status === 'selesai' ? 'badge-green' : 'badge-blue' }}">
-                    {{ ucwords(str_replace('_', ' ', $order->status)) }}
-                </span>
-            </div>
-
-            <div class="tracking-steps">
+        <tbody>
+            @forelse($orders as $order)
                 @php
-                    $flow = ['diterima', 'dicuci', 'dijemur', 'disetrika', 'siap_diambil', 'selesai'];
-                    $currentIndex = array_search($order->status, $flow);
+                    $currentStatus = $order->status;
+                    $statusLabel = $statusOptions[$currentStatus] ?? ucfirst(str_replace('_', ' ', $currentStatus));
+
+                    $statusClass = match($currentStatus) {
+                        'diterima' => 'status-masuk',
+                        'dicuci' => 'status-cuci',
+                        'dijemur' => 'status-kering',
+                        'disetrika' => 'status-setrika',
+                        'siap_diambil' => 'status-ambil',
+                        'selesai' => 'status-selesai',
+                        default => 'status-masuk',
+                    };
+
+                    $estimatedHours = $order->service->estimated_hours ?? 48;
+                    $estimatedDate = $order->created_at
+                        ? $order->created_at->copy()->addHours($estimatedHours)->format('d M Y')
+                        : '-';
                 @endphp
 
-                @foreach($flow as $index => $step)
-                    <div class="tracking-step {{ $currentIndex !== false && $index <= $currentIndex ? 'active' : '' }}">
-                        <div class="step-circle">{{ $index + 1 }}</div>
-                        <span>{{ ucwords(str_replace('_', ' ', $step)) }}</span>
-                    </div>
-                @endforeach
-            </div>
+                <tr>
+                    <td>ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</td>
+                    <td>{{ $order->customer->user->name ?? '-' }}</td>
+                    <td>{{ $order->service->name ?? '-' }}</td>
+                    <td>{{ $order->created_at ? $order->created_at->format('d M Y') : '-' }}</td>
+                    <td>{{ $estimatedDate }}</td>
+                    <td>
+                        <span class="tracking-status-badge {{ $statusClass }}">
+                            {{ $statusLabel }}
+                        </span>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('tracking.update', $order) }}">
+                            @csrf
+                            @method('PATCH')
 
-            <form method="POST" action="{{ route('tracking.update', $order) }}" class="tracking-update-form">
-                @csrf
-                @method('PATCH')
+                            <select
+                                name="status"
+                                class="tracking-status-select"
+                                onchange="this.form.submit()"
+                            >
+                                @foreach($statusOptions as $value => $label)
+                                    <option value="{{ $value }}" {{ $order->status === $value ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" class="empty-row">
+                        Belum ada order laundry.
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Ubah Status</label>
-                        <select name="status" class="form-control">
-                            @foreach($statuses as $status)
-                                <option value="{{ $status }}" {{ $order->status === $status ? 'selected' : '' }}>
-                                    {{ ucwords(str_replace('_', ' ', $status)) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+<div class="tracking-legend-card">
+    <p>Status Order:</p>
 
-                    <div class="form-group">
-                        <label>Catatan</label>
-                        <input type="text" name="note" class="form-control" placeholder="Contoh: Cucian sedang diproses">
-                    </div>
-                </div>
-
-                <div class="tracking-actions">
-                    <a href="{{ route('orders.show', $order) }}" class="btn-cancel">Detail</a>
-                    <button type="submit" class="btn-internal-primary">Update Status</button>
-                </div>
-            </form>
-        </div>
-    @empty
-        <div class="empty-card">
-            Belum ada order untuk ditampilkan.
-        </div>
-    @endforelse
+    <div class="tracking-legend-list">
+        <span class="tracking-status-badge status-masuk">Masuk</span>
+        <span class="tracking-status-badge status-cuci">Sedang Dicuci</span>
+        <span class="tracking-status-badge status-kering">Pengeringan</span>
+        <span class="tracking-status-badge status-setrika">Setrika</span>
+        <span class="tracking-status-badge status-ambil">Siap Diambil</span>
+        <span class="tracking-status-badge status-selesai">Selesai</span>
+    </div>
 </div>
 @endsection

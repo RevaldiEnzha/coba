@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LaundryOrderController;
 use App\Http\Controllers\TrackingController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -29,6 +30,9 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
 
     Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
     Route::patch('/tracking/{order}', [TrackingController::class, 'updateStatus'])->name('tracking.update');
+
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/payments/{invoice}/process', [PaymentController::class, 'process'])->name('payments.process');
 });
 
 Route::get('/portal', function () {

@@ -1106,7 +1106,7 @@ textarea.form-control {
     }
 }
 
-/* 
+/*
    CUSTOMER MODAL FORM
  */
 
@@ -1248,4 +1248,754 @@ textarea.form-control {
     cursor: pointer;
     padding: 0;
     line-height: 1;
+}
+
+/* =========================
+   CUSTOMER MODAL FORM
+========================= */
+
+.modal-open {
+    overflow: hidden;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.modal-overlay.show {
+    display: flex;
+}
+
+.customer-modal-card {
+    width: 100%;
+    max-width: 430px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+    padding: 22px;
+}
+
+.customer-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.customer-modal-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.modal-close-btn {
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.customer-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.modal-form-group label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.modal-form-group input,
+.modal-form-group textarea {
+    width: 100%;
+    border: 1px solid #d5dde8;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+}
+
+.modal-form-group input {
+    height: 42px;
+}
+
+.modal-form-group textarea {
+    min-height: 86px;
+    resize: none;
+}
+
+.modal-form-group input:focus,
+.modal-form-group textarea:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.customer-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.modal-cancel-btn {
+    height: 42px;
+    border-radius: 9px;
+    border: 1px solid #d5dde8;
+    background: #ffffff;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-submit-btn {
+    height: 42px;
+    border-radius: 9px;
+    border: 0;
+    background: #0ea5e9;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.modal-submit-btn:hover {
+    background: #0284c7;
+}
+
+.edit-action {
+    border: 0;
+    background: transparent;
+    color: #0ea5e9;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.delete-action {
+    border: 0;
+    background: transparent;
+    color: #ef4444;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.error-text {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+/* =========================
+   PAYMENT PAGE
+========================= */
+
+.payment-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.payment-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.payment-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    text-align: left;
+    padding: 17px 22px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.payment-table td {
+    padding: 19px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.payment-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.payment-status {
+    display: inline-flex;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.payment-status.unpaid {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.payment-status.paid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.payment-detail-btn {
+    height: 36px;
+    border: 0;
+    border-radius: 9px;
+    background: #0ea5e9;
+    color: #ffffff;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.payment-detail-btn:hover {
+    background: #0284c7;
+}
+
+.payment-modal-card,
+.payment-success-card {
+    width: 100%;
+    max-width: 460px;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+}
+
+.payment-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.payment-modal-header h3,
+.payment-success-card h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.payment-success-card p {
+    margin: 10px 0 18px;
+    color: #64748b;
+}
+
+.payment-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.payment-detail-row span {
+    color: #64748b;
+}
+
+.payment-detail-row strong {
+    color: #0f172a;
+}
+
+.payment-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 14px;
+}
+
+.payment-form-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+}
+
+.payment-form-group select,
+.payment-form-group input {
+    height: 42px;
+    border: 1px solid #d5dde8;
+    border-radius: 9px;
+    padding: 0 12px;
+    outline: none;
+    font-size: 14px;
+}
+
+.payment-form-group small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.payment-service-box {
+    margin-top: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.payment-service-box h4 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.payment-total-row {
+    border-bottom: 0;
+    margin-top: 4px;
+}
+
+.payment-total-row strong {
+    color: #0284c7;
+    font-size: 20px;
+}
+
+.payment-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.success-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.receipt-box {
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 14px;
+}
+
+.receipt-box h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #receiptArea,
+    #receiptArea * {
+        visibility: visible;
+    }
+
+    #receiptArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none;
+    }
+}
+
+
+/* =========================
+   TRANSACTION PAGE
+========================= */
+
+.transaction-page-header h1 {
+    font-size: 34px;
+    margin-bottom: 8px;
+}
+
+.transaction-page-header p {
+    margin-bottom: 22px;
+}
+
+.transaction-toolbar {
+    margin-bottom: 20px;
+}
+
+.transaction-add-btn {
+    height: 40px;
+    background: #0ea5e9;
+    color: #ffffff;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.transaction-add-btn:hover {
+    background: #0284c7;
+}
+
+.transaction-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transaction-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    text-align: left;
+    padding: 15px 18px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.transaction-table td {
+    padding: 15px 18px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.transaction-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.transaction-table td:first-child {
+    font-weight: 800;
+}
+
+.transaction-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.transaction-status.status-process {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.transaction-status.status-done {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.transaction-eye-action {
+    color: #0ea5e9;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* =========================
+   TRANSACTION MODAL
+========================= */
+
+.transaction-modal-card {
+    width: 100%;
+    max-width: 430px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+    padding: 22px;
+}
+
+.transaction-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.transaction-modal-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.transaction-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.transaction-modal-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.transaction-modal-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.transaction-modal-group label {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.transaction-modal-group select,
+.transaction-modal-group input {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #d5dde8;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 13px;
+    padding: 0 12px;
+    outline: none;
+}
+
+.transaction-modal-group select:focus,
+.transaction-modal-group input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.transaction-total-preview {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.transaction-total-preview span {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.transaction-total-preview strong {
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.transaction-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+@media (max-width: 760px) {
+    .transaction-table-card {
+        overflow-x: auto;
+    }
+
+    .transaction-table {
+        min-width: 900px;
+    }
+
+    .transaction-modal-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================
+   ORDER TRACKING PAGE
+========================= */
+
+.tracking-page-header h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.tracking-page-header p {
+    margin-bottom: 22px;
+    color: #64748b;
+}
+
+.tracking-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tracking-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tracking-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    text-align: left;
+    padding: 15px 18px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tracking-table td {
+    padding: 15px 18px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.tracking-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.tracking-table td:first-child {
+    font-weight: 800;
+}
+
+.tracking-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-masuk {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.status-cuci {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.status-kering {
+    background: #cffafe;
+    color: #0891b2;
+}
+
+.status-setrika {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.status-ambil {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-selesai {
+    background: #bbf7d0;
+    color: #15803d;
+}
+
+.tracking-status-select {
+    width: 150px;
+    height: 36px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 10px;
+    outline: none;
+    cursor: pointer;
+}
+
+.tracking-status-select:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+.tracking-legend-card {
+    margin-top: 22px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.tracking-legend-card p {
+    margin: 0 0 12px;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.tracking-legend-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+@media (max-width: 900px) {
+    .tracking-table-card {
+        overflow-x: auto;
+    }
+
+    .tracking-table {
+        min-width: 950px;
+    }
 }

@@ -90,7 +90,7 @@
     </table>
 </div>
 
-{{-- MODAL TAMBAH --}}
+{{-- MODAL TAMBAH PELANGGAN --}}
 <div class="modal-overlay" id="createCustomerModal">
     <div class="customer-modal-card">
         <div class="customer-modal-header">
@@ -100,6 +100,7 @@
 
         <form method="POST" action="{{ route('customers.store') }}" class="customer-modal-form">
             @csrf
+
             <input type="hidden" name="_mode" value="create">
 
             <div class="modal-form-group">
@@ -110,8 +111,11 @@
                     placeholder="Masukkan nama"
                     value="{{ old('_mode') === 'create' ? old('name') : '' }}"
                 >
+
                 @if(old('_mode') === 'create')
-                    @error('name') <small class="error-text">{{ $message }}</small> @enderror
+                    @error('name')
+                        <small class="error-text">{{ $message }}</small>
+                    @enderror
                 @endif
             </div>
 
@@ -123,19 +127,22 @@
                     placeholder="Masukkan nomor"
                     value="{{ old('_mode') === 'create' ? old('phone') : '' }}"
                 >
+
                 @if(old('_mode') === 'create')
-                    @error('phone') <small class="error-text">{{ $message }}</small> @enderror
+                    @error('phone')
+                        <small class="error-text">{{ $message }}</small>
+                    @enderror
                 @endif
             </div>
 
             <div class="modal-form-group">
                 <label>Alamat</label>
-                <textarea
-                    name="address"
-                    placeholder="Masukkan alamat"
-                >{{ old('_mode') === 'create' ? old('address') : '' }}</textarea>
+                <textarea name="address" placeholder="Masukkan alamat">{{ old('_mode') === 'create' ? old('address') : '' }}</textarea>
+
                 @if(old('_mode') === 'create')
-                    @error('address') <small class="error-text">{{ $message }}</small> @enderror
+                    @error('address')
+                        <small class="error-text">{{ $message }}</small>
+                    @enderror
                 @endif
             </div>
 
@@ -147,7 +154,7 @@
     </div>
 </div>
 
-{{-- MODAL EDIT --}}
+{{-- MODAL EDIT PELANGGAN --}}
 <div class="modal-overlay" id="editCustomerModal">
     <div class="customer-modal-card">
         <div class="customer-modal-header">
@@ -158,30 +165,40 @@
         <form method="POST" action="#" id="editCustomerForm" class="customer-modal-form">
             @csrf
             @method('PUT')
+
             <input type="hidden" name="_mode" value="edit">
-            <input type="hidden" name="customer_id" id="edit_customer_id" value="">
+            <input type="hidden" name="customer_id" id="edit_customer_id">
 
             <div class="modal-form-group">
                 <label>Nama Lengkap</label>
                 <input type="text" name="name" id="edit_name" placeholder="Masukkan nama">
+
                 @if(old('_mode') === 'edit')
-                    @error('name') <small class="error-text">{{ $message }}</small> @enderror
+                    @error('name')
+                        <small class="error-text">{{ $message }}</small>
+                    @enderror
                 @endif
             </div>
 
             <div class="modal-form-group">
                 <label>Nomor Telepon</label>
                 <input type="text" name="phone" id="edit_phone" placeholder="Masukkan nomor">
+
                 @if(old('_mode') === 'edit')
-                    @error('phone') <small class="error-text">{{ $message }}</small> @enderror
+                    @error('phone')
+                        <small class="error-text">{{ $message }}</small>
+                    @enderror
                 @endif
             </div>
 
             <div class="modal-form-group">
                 <label>Alamat</label>
                 <textarea name="address" id="edit_address" placeholder="Masukkan alamat"></textarea>
+
                 @if(old('_mode') === 'edit')
-                    @error('address') <small class="error-text">{{ $message }}</small> @enderror
+                    @error('address')
+                        <small class="error-text">{{ $message }}</small>
+                    @enderror
                 @endif
             </div>
 
@@ -200,13 +217,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const openCreateBtn = document.getElementById('openCreateCustomerModal');
     const closeButtons = document.querySelectorAll('[data-close-modal]');
     const editButtons = document.querySelectorAll('.open-edit-modal');
-    const editForm = document.getElementById('editCustomerForm');
-    const customerBaseUrl = "{{ url('customers') }}";
 
+    const editForm = document.getElementById('editCustomerForm');
     const editId = document.getElementById('edit_customer_id');
     const editName = document.getElementById('edit_name');
     const editPhone = document.getElementById('edit_phone');
     const editAddress = document.getElementById('edit_address');
+
+    const customerBaseUrl = "{{ url('customers') }}";
 
     function openModal(modal) {
         modal.classList.add('show');
@@ -246,12 +264,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    [createModal, editModal].forEach(modal => {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                closeModal(modal);
-            }
-        });
+    createModal.addEventListener('click', function (event) {
+        if (event.target === createModal) {
+            closeModal(createModal);
+        }
+    });
+
+    editModal.addEventListener('click', function (event) {
+        if (event.target === editModal) {
+            closeModal(editModal);
+        }
     });
 
     @if($errors->any())
@@ -263,11 +285,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (oldMode === 'edit') {
             const oldCustomerId = @json(old('customer_id'));
+
             editForm.action = `${customerBaseUrl}/${oldCustomerId}`;
             editId.value = oldCustomerId;
             editName.value = @json(old('name'));
             editPhone.value = @json(old('phone'));
             editAddress.value = @json(old('address'));
+
             openModal(editModal);
         }
     @endif
