@@ -8,6 +8,11 @@ use App\Http\Controllers\LaundryOrderController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\PaymentController;
 
+
+
+use App\Http\Controllers\CustomerPortalController;
+
+
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -31,10 +36,25 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::get('/tracking', [TrackingController::class, 'index'])->name('tracking.index');
     Route::patch('/tracking/{order}', [TrackingController::class, 'updateStatus'])->name('tracking.update');
 
+
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payments/{invoice}/process', [PaymentController::class, 'process'])->name('payments.process');
+
+    Route::get(
+        '/payments',
+        [PaymentController::class,'index']
+    )->name('payments.index');
+
 });
 
-Route::get('/portal', function () {
-    return 'Login berhasil. Ini halaman portal pelanggan sementara.';
-})->middleware(['auth', 'role:pelanggan'])->name('portal.dashboard');
+Route::middleware([
+    'auth',
+    'role:pelanggan'
+])->group(function () {
+
+    Route::get(
+        '/portal',
+        [CustomerPortalController::class,'dashboard']
+    )->name('portal.dashboard');
+
+});
