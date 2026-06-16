@@ -993,6 +993,7 @@ textarea.form-control {
     background: #0ea5e9;
     color: #ffffff;
     padding: 0 20px;
+    border: none;
     border-radius: 9px;
     text-decoration: none;
     font-weight: 700;
