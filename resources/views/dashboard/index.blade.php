@@ -82,7 +82,7 @@
         <h3>Aksi Cepat</h3>
 
         <div class="quick-grid">
-            <a href="#" class="quick-card quick-primary">
+            <a href="{{ route('orders.index') }}" class="quick-card quick-primary">
                 <div class="quick-icon">+</div>
                 <div>
                     <h4>Buat Transaksi Baru</h4>
@@ -90,7 +90,7 @@
                 </div>
             </a>
 
-            <a href="#" class="quick-card">
+            <a href="{{ route('customers.index') }}" class="quick-card">
                 <div class="quick-icon muted">⌕</div>
                 <div>
                     <h4>Cari Pelanggan</h4>
