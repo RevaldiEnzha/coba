@@ -41,7 +41,7 @@
                 </a>
 
                 @if(auth()->user()->role === 'admin')
-                    <a href="#">
+                    <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
                         <span class="menu-icon">▤</span>
                         Laporan Keuangan
                     </a>

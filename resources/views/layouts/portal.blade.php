@@ -1,76 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Portal Pelanggan</title>
-
-    <link rel="stylesheet"
-          href="{{ asset('css/laundry.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Pelanggan - Sistem Laundry</title>
+    <link rel="stylesheet" href="{{ asset('css/laundry.css') }}">
 </head>
+<body class="portal-body">
+    <div class="portal-shell">
+        <aside class="portal-sidebar">
+            <div class="brand">
+                <div class="brand-logo">L</div>
+                <span>Laundry System</span>
+            </div>
 
-<body class="app-body">
+            <nav class="sidebar-menu">
+                <a href="{{ route('portal.dashboard') }}" class="{{ request()->routeIs('portal.dashboard') ? 'active' : '' }}">
+                    <span class="menu-icon">▦</span>
+                    Dashboard
+                </a>
+            </nav>
 
-<div class="app-shell">
-
-    <aside class="sidebar">
-
-        <div class="brand">
-            <div class="brand-logo">L</div>
-            <span>Laundry Portal</span>
-        </div>
-
-        <nav class="sidebar-menu">
-
-            <a href="#" class="active">
-                
-                Dashboard
-            </a>
-
-            <a href="#">
-                Pesanan Aktif
-            </a>
-
-            <a href="#">
-                Riwayat
-            </a>
-
-            <a href="#">
-                Poin Saya
-            </a>
-
-            <a href="#">
-                Akun Saya
-            </a>
-
-        </nav>
-
-        <div class="logout-area">
-
-            <form method="POST"
-                  action="{{ route('logout') }}">
-
+            <form method="POST" action="{{ route('logout') }}" class="logout-area">
                 @csrf
-
                 <button type="submit">
-
-                    <span class="menu-icon">↩</span>
-
-                    Logout
-
+                    <span class="menu-icon">↪</span>
+                    Keluar
                 </button>
-
             </form>
+        </aside>
 
-        </div>
-
-    </aside>
-
-    <main class="main-content">
-
-        @yield('content')
-
-    </main>
-
-</div>
-
+        <main class="portal-main-content">
+            @yield('content')
+        </main>
+    </div>
 </body>
 </html>

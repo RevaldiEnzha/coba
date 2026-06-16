@@ -7,8 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LaundryOrderController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\PaymentController;
-
-
+use App\Http\Controllers\ReportController;
 
 use App\Http\Controllers\CustomerPortalController;
 
@@ -40,21 +39,16 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payments/{invoice}/process', [PaymentController::class, 'process'])->name('payments.process');
 
-    Route::get(
-        '/payments',
-        [PaymentController::class,'index']
-    )->name('payments.index');
+
 
 });
 
-Route::middleware([
-    'auth',
-    'role:pelanggan'
-])->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+});
 
-    Route::get(
-        '/portal',
-        [CustomerPortalController::class,'dashboard']
-    )->name('portal.dashboard');
 
+Route::middleware(['auth', 'role:pelanggan'])->group(function () {
+    Route::get('/portal', [CustomerPortalController::class, 'index'])->name('portal.dashboard');
+    Route::get('/portal/orders/{order}', [CustomerPortalController::class, 'show'])->name('portal.orders.show');
 });
