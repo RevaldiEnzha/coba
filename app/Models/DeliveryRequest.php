@@ -8,9 +8,11 @@ class DeliveryRequest extends Model
 {
     protected $fillable = [
         'customer_id',
+        'service_id',
         'laundry_order_id',
         'type',
         'address',
+        'note',
         'distance_km',
         'fee',
         'status',
@@ -20,6 +22,11 @@ class DeliveryRequest extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class);
     }
 
     public function laundryOrder()

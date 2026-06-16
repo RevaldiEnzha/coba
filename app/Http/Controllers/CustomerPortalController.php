@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LaundryOrder;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Service;
 
 class CustomerPortalController extends Controller
 {
@@ -35,11 +36,14 @@ class CustomerPortalController extends Controller
             ->limit(5)
             ->get();
 
+        $services = Service::where('is_active', true)->get();
+
         return view('portal.dashboard', compact(
             'customer',
             'activeOrders',
             'completedOrders',
-            'recentOrders'
+            'recentOrders',
+            'services'
         ));
     }
 

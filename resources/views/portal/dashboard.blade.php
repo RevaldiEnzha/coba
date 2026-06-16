@@ -67,9 +67,28 @@
             @csrf
 
             <div class="modal-form-group">
+                <label>Jenis Layanan</label>
+                <select name="service_id">
+                    <option value="">Pilih layanan</option>
+                    @foreach($services as $service)
+                        <option value="{{ $service->id }}" {{ old('service_id') == $service->id ? 'selected' : '' }}>
+                            {{ $service->name }} - Rp {{ number_format($service->price, 0, ',', '.') }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('service_id') <small class="error-text">{{ $message }}</small> @enderror
+            </div>
+
+            <div class="modal-form-group">
                 <label>Alamat Jemput</label>
                 <textarea name="address" placeholder="Masukkan alamat jemput">{{ old('address', $customer->address ?? '') }}</textarea>
                 @error('address') <small class="error-text">{{ $message }}</small> @enderror
+            </div>
+
+            <div class="modal-form-group">
+                <label>Catatan Cucian</label>
+                <textarea name="note" placeholder="Contoh: pakaian putih dipisah, ada bed cover, dll.">{{ old('note') }}</textarea>
+                @error('note') <small class="error-text">{{ $message }}</small> @enderror
             </div>
 
             <div class="modal-form-group">

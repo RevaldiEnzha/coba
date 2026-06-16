@@ -42,6 +42,9 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::get('/delivery-requests', [DeliveryRequestController::class, 'index'])->name('delivery.index');
     Route::patch('/delivery-requests/{deliveryRequest}', [DeliveryRequestController::class, 'updateStatus'])->name('delivery.update');
 
+    Route::post('/delivery-requests/{deliveryRequest}/confirm', [DeliveryRequestController::class, 'confirm'])
+    ->name('delivery.confirm');
+
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
