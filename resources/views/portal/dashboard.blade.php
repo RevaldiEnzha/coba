@@ -67,19 +67,19 @@
         </strong>
     </div>
 
-    <div class="detail-row">
+    {{-- <div class="detail-row">
         <span>No HP</span>
         <strong>
             {{ $customer->phone }}
         </strong>
-    </div>
+    </div> --}}
 
-    <div class="detail-row">
+    {{-- <div class="detail-row">
         <span>Alamat</span>
         <strong>
             {{ $customer->address }}
         </strong>
-    </div>
+    </div> --}}
 
 </div>
 
