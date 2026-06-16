@@ -8,7 +8,7 @@ use App\Http\Controllers\LaundryOrderController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
-
+use App\Http\Controllers\DeliveryRequestController;
 use App\Http\Controllers\CustomerPortalController;
 
 
@@ -39,7 +39,8 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::post('/payments/{invoice}/process', [PaymentController::class, 'process'])->name('payments.process');
 
-
+    Route::get('/delivery-requests', [DeliveryRequestController::class, 'index'])->name('delivery.index');
+    Route::patch('/delivery-requests/{deliveryRequest}', [DeliveryRequestController::class, 'updateStatus'])->name('delivery.update');
 
 });
 
@@ -51,4 +52,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/portal', [CustomerPortalController::class, 'index'])->name('portal.dashboard');
     Route::get('/portal/orders/{order}', [CustomerPortalController::class, 'show'])->name('portal.orders.show');
+
+    Route::post('/portal/pickups', [DeliveryRequestController::class, 'store'])->name('portal.pickups.store');
 });

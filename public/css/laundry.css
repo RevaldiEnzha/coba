@@ -2511,3 +2511,161 @@ textarea.form-control {
         padding: 24px;
     }
 }
+
+/* =========================
+   DELIVERY / PICKUP REQUEST PAGE
+========================= */
+
+.delivery-page-header h1 {
+    font-size: 34px;
+    margin-bottom: 8px;
+}
+
+.delivery-page-header p {
+    margin-bottom: 22px;
+    color: #64748b;
+}
+
+.delivery-table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.delivery-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.delivery-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    text-align: left;
+    padding: 15px 18px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.delivery-table td {
+    padding: 15px 18px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.delivery-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.delivery-table td:first-child {
+    font-weight: 800;
+}
+
+.delivery-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.delivery-waiting {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.delivery-process {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.delivery-done {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.delivery-cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.delivery-status-select {
+    width: 180px;
+    height: 36px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 10px;
+    outline: none;
+    cursor: pointer;
+}
+
+.portal-pickup-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.portal-pickup-card h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.portal-pickup-card p {
+    margin: 0;
+    color: #64748b;
+}
+
+.portal-pickup-btn {
+    height: 42px;
+    border: 0;
+    border-radius: 10px;
+    background: #0ea5e9;
+    color: #ffffff;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.portal-pickup-btn:hover {
+    background: #0284c7;
+}
+
+@media (max-width: 900px) {
+    .delivery-table-card {
+        overflow-x: auto;
+    }
+
+    .delivery-table {
+        min-width: 1000px;
+    }
+
+    .portal-pickup-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .portal-pickup-btn {
+        width: 100%;
+    }
+}

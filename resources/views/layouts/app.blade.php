@@ -35,6 +35,11 @@
                     Order Tracking
                 </a>
 
+                <a href="{{ route('delivery.index') }}" class="{{ request()->routeIs('delivery.*') ? 'active' : '' }}">
+                    <span class="menu-icon">🚚</span>
+                    Pesanan Jemput
+                </a>
+
                 <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}">
                     <span class="menu-icon">▭</span>
                     Pembayaran
