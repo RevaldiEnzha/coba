@@ -41,6 +41,17 @@
             <span>Status Pembayaran</span>
             <strong>{{ ucwords(str_replace('_', ' ', $order->payment_status)) }}</strong>
         </div>
+
+        <div class="portal-profile-row">
+            <span>Metode Pembayaran</span>
+            <strong style="color: #0ea5e9;">
+                @if($order->invoice && $order->invoice->payment)
+                    {{ strtoupper($order->invoice->payment->method ?? $order->invoice->payment->payment_method ?? '-') }}
+                @else
+                    Belum Dibayar
+                @endif
+            </strong>
+        </div>
     </div>
 
     <div class="portal-profile-card">

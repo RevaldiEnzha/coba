@@ -62,6 +62,7 @@
                                 data-customer="{{ $user->name ?? '-' }}"
                                 data-total="{{ $invoice->total_amount }}"
                                 data-date="{{ $invoice->updated_at->format('d M Y H:i') }}"
+                                data-method="{{ strtoupper($invoice->payment->method ?? $invoice->payment->payment_method ?? '-') }}"
                             >
                                 📄 Lihat Nota
                             </button>
@@ -194,6 +195,11 @@
             </div>
 
             <div class="payment-detail-row">
+                <span>Metode Pembayaran</span>
+                <strong id="reprintMethod" style="color: #0ea5e9;">-</strong>
+            </div>
+
+            <div class="payment-detail-row">
                 <span>Total Dibayar</span>
                 <strong id="reprintTotal">-</strong>
             </div>
@@ -238,6 +244,11 @@
                 </div>
 
                 <div class="payment-detail-row">
+                    <span>Metode Pembayaran</span>
+                    <strong>{{ strtoupper($paidPayment->method ?? $paidPayment->payment_method ?? '-') }}</strong>
+                </div>
+
+                <div class="payment-detail-row">
                     <span>Total Dibayar</span>
                     <strong>Rp {{ number_format($paidPayment->amount_paid ?? $paidInvoice->total_amount, 0, ',', '.') }}</strong>
                 </div>
@@ -250,7 +261,7 @@
 
             <div class="payment-modal-actions">
                 <a href="{{ route('payments.index') }}" class="modal-cancel-btn success-link">Selesai</a>
-                <button type="button" class="modal-submit-btn" onclick="window.print()">🖨️ Unduh Nota</button>
+                <button type="button" class="modal-submit-btn" onclick="window.print()">🖨️ Cetak Nota</button>
             </div>
         </div>
     </div>
@@ -283,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const reprintInvoice = document.getElementById('reprintInvoiceCode');
     const reprintCustomer = document.getElementById('reprintCustomerName');
+    const reprintMethod = document.getElementById('reprintMethod'); // BARIS BARU
     const reprintTotal = document.getElementById('reprintTotal');
     const reprintDate = document.getElementById('reprintDate');
 
@@ -373,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function () {
         button.addEventListener('click', function () {
             reprintInvoice.innerText = this.dataset.invoice;
             reprintCustomer.innerText = this.dataset.customer;
+            reprintMethod.innerText = this.dataset.method; // SET METODE DI SINI
             reprintTotal.innerText = rupiah(Number(this.dataset.total || 0));
             reprintDate.innerText = this.dataset.date;
             openReceipt();
