@@ -49,7 +49,8 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
-        return redirect()->route('customers.index');
+        // PERBAIKAN: Tampilkan halaman edit, jangan di-redirect!
+        return view('customers.edit', compact('customer'));
     }
 
     public function store(Request $request)
@@ -90,73 +91,33 @@ class CustomerController extends Controller
 
     public function update(Request $request, Customer $customer)
     {
-        $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'phone' => ['required', 'string', 'max:20', 'unique:customers,phone,' . $customer->id],
-        'address' => ['required', 'string'],
-        '_mode' => ['nullable', 'string'],
-        'customer_id' => ['nullable'],
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . $customer->user_id,
+            'phone'    => 'required|string|max:20|unique:customers,phone,' . $customer->id,
+            'address'  => 'required|string',
+            'password' => 'nullable|min:8',
+        ], [
+            'username.unique' => 'Username ini sudah dipakai oleh pengguna lain.',
+            'phone.unique'    => 'Nomor WhatsApp ini sudah terdaftar di sistem.',
         ]);
 
-        DB::transaction(function () use ($validated, $customer) {
-            $customer->user->update([
-                'name' => $validated['name'],
-            ]);
+        // Simpan ke tabel users
+        $customer->user->name = $request->name;
+        $customer->user->username = $request->username;
+        if ($request->filled('password')) {
+            $customer->user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        }
+        $customer->user->save();
 
-            $customer->update([
-                'phone' => $validated['phone'],
-                'address' => $validated['address'],
-            ]);
-        });
+        // Simpan ke tabel customers
+        $customer->update([
+            'phone'   => $request->phone,
+            'address' => $request->address,
+        ]);
 
         return redirect()
             ->route('customers.index')
-            ->with('success', 'Data pelanggan berhasil diperbarui.');
-    }
-
-    private function generateUniqueEmail(string $username): string
-    {
-        $email = $username . '@customer.local';
-        $counter = 1;
-
-        while (User::where('email', $email)->exists()) {
-            $email = $username . $counter . '@customer.local';
-            $counter++;
-        }
-
-        return $email;
-    }
-
-    private function generateUniqueUsername(string $name): string
-    {
-        $base = Str::lower(Str::slug($name, ''));
-        $base = $base !== '' ? $base : 'pelanggan';
-
-        $username = $base;
-        $counter = 1;
-
-        while (User::where('username', $username)->exists()) {
-            $username = $base . $counter;
-            $counter++;
-        }
-
-        return $username;
-    }
-
-    public function destroy(Customer $customer)
-    {
-        DB::transaction(function () use ($customer) {
-            $user = $customer->user;
-
-            $customer->delete();
-
-            if ($user) {
-                $user->delete();
-            }
-        });
-
-        return redirect()
-            ->route('customers.index')
-            ->with('success', 'Pelanggan berhasil dihapus.');
+            ->with('success', 'Data pelanggan berhasil diperbarui!');
     }
 }

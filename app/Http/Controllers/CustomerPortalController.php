@@ -300,4 +300,38 @@ class CustomerPortalController extends Controller
             return back()->with('info', 'Terjadi kesalahan sistem saat membatalkan pengantaran.');
         }
     }
+    public function editProfile()
+    {
+        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        return view('portal.profile', compact('customer'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $customer = $user->customer;
+
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
+            'phone'    => 'required|string|max:20|unique:customers,phone,' . $customer->id,
+            'address'  => 'required|string',
+            'password' => 'nullable|min:8',
+        ]);
+
+        $user->name = $request->name;
+        $user->username = $request->username;
+        
+        if ($request->filled('password')) {
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        }
+        $user->save();
+
+        $customer->update([
+            'phone'   => $request->phone,
+            'address' => $request->address,
+        ]);
+
+        return redirect()->back()->with('success', 'Profil Anda berhasil diperbarui!');
+    }
 }

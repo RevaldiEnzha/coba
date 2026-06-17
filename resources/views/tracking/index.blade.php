@@ -7,7 +7,15 @@
 </section>
 
 @if(session('success'))
-    <div class="alert-success">{{ session('success') }}</div>
+    <div class="alert-success" style="margin-bottom: 20px; padding: 14px; border-radius: 10px; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('info'))
+    <div class="alert-info" style="margin-bottom: 20px; padding: 14px; border-radius: 10px; background: #fef08a; color: #854d0e; border: 1px solid #fde047; font-weight: 600;">
+        ⚠️ {{ session('info') }}
+    </div>
 @endif
 
 <div class="tracking-table-card">

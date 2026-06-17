@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Models\NotificationLog;
+use Illuminate\Support\Facades\Http;
 
 class TrackingController extends Controller
 {
@@ -31,34 +33,102 @@ class TrackingController extends Controller
 
     public function updateStatus(Request $request, LaundryOrder $order)
     {
-        $statusOptions = [
-            'diterima',
-            'dicuci',
-            'dijemur',
-            'disetrika',
-            'siap_diambil',
-            'selesai',
-        ];
-
         $validated = $request->validate([
-            'status' => ['required', Rule::in($statusOptions)],
+            'status' => [
+                'required',
+                'in:diterima,dicuci,dijemur,disetrika,siap_diambil,selesai',
+            ],
         ]);
 
-        DB::transaction(function () use ($order, $validated) {
-            $order->update([
-                'status' => $validated['status'],
-            ]);
+        // 1. Update status cucian di database
+        $order->update([
+            'status' => $validated['status'],
+        ]);
 
-            OrderStatusHistory::create([
-                'laundry_order_id' => $order->id,
-                'user_id' => Auth::id(),
-                'status' => $validated['status'],
-                'note' => 'Status order diperbarui melalui halaman Order Tracking.',
-            ]);
-        });
+        // 2. Logika Pengiriman WhatsApp Otomatis
+        $waSent = false; // Penanda awal (dianggap belum terkirim)
 
+        if ($validated['status'] === 'siap_diambil') {
+            $customer = $order->customer;
+
+            // Pastikan data pelanggan dan nomor HP tersedia
+            if ($customer && $customer->phone) {
+                $phone = $customer->phone;
+                $name = $customer->user->name ?? 'Pelanggan';
+                $orderId = 'ORD-' . str_pad($order->id, 3, '0', STR_PAD_LEFT);
+                $total = number_format($order->total_price, 0, ',', '.');
+
+                // Susun isi pesan WhatsApp lengkap
+                $message = "Halo *$name*!\n\nCucian Anda dengan No. Order *$orderId* sudah *SIAP DIAMBIL* di outlet kami.\n\nTotal Tagihan: Rp $total\n\nTerima kasih telah mempercayakan cucian Anda kepada kami!";
+
+                try {
+                    // Tembak API Fonnte
+                    $response = Http::withHeaders([
+                        'Authorization' => env('FONNTE_TOKEN')
+                    ])->post('https://api.fonnte.com/send', [
+                        'target' => $phone,
+                        'message' => $message,
+                        'countryCode' => '62',
+                    ]);
+
+                    $responseData = $response->json();
+                    
+                    // Cek apakah respons dari server Fonnte sukses
+                    if ($response->successful() && isset($responseData['status']) && $responseData['status']) {
+                        $waSent = true; // Tandai bahwa WA sukses terkirim!
+                        
+                        NotificationLog::create([
+                            'laundry_order_id' => $order->id,
+                            'customer_id' => $customer->id,
+                            'channel' => 'whatsapp',
+                            'recipient' => $phone,
+                            'message' => $message,
+                            'status' => 'sent',
+                            'sent_at' => now(),
+                        ]);
+                    } else {
+                        // Jika server merespon tapi ada masalah (misal nomor tidak valid)
+                        NotificationLog::create([
+                            'laundry_order_id' => $order->id,
+                            'customer_id' => $customer->id,
+                            'channel' => 'whatsapp',
+                            'recipient' => $phone,
+                            'message' => $message,
+                            'status' => 'failed',
+                            'error_message' => $responseData['reason'] ?? 'Unknown API Error',
+                        ]);
+                    }
+
+                } catch (\Exception $e) {
+                    // Jika gagal total (misal internet putus atau server Fonnte down)
+                    NotificationLog::create([
+                        'laundry_order_id' => $order->id,
+                        'customer_id' => $customer->id,
+                        'channel' => 'whatsapp',
+                        'recipient' => $phone,
+                        'message' => $message,
+                        'status' => 'failed',
+                        'error_message' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // ==========================================
+        // 3. PENGECEKAN NOTIFIKASI UNTUK KASIR
+        // ==========================================
+        
+        // Jika statusnya Siap Diambil TAPI WA gagal terkirim (atau pelanggan tidak punya no HP)
+        if ($validated['status'] === 'siap_diambil' && !$waSent) {
+            return redirect()
+                ->route('tracking.index')
+                ->with('info', 'Status diperbarui, NAMUN pesan WA GAGAL terkirim.');
+        }
+
+        // Jika berhasil semua (atau untuk perubahan status selain "siap_diambil")
         return redirect()
             ->route('tracking.index')
-            ->with('success', 'Status order berhasil diperbarui.');
+            ->with('success', 'Status cucian berhasil diperbarui.');
     }
+
 }
