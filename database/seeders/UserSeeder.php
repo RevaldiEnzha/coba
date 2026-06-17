@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -23,12 +24,19 @@ class UserSeeder extends Seeder
         ]);
 
         // Customer / Pelanggan
-        User::create([
+        $pelanggan = User::create([
             'name' => 'Pelanggan',
             'username' => 'pelanggan',
             'email' => 'pelanggan@gmail.com',
             'password' => '123123123',
             'role' => 'pelanggan',
+        ]);
+
+        Customer::create([
+            'user_id' => $pelanggan->id,
+            'phone' => '081234567890',
+            'address' => 'Jl. Pelanggan',
+            'points_balance' => 0,
         ]);
     }
 }
