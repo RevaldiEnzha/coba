@@ -19,6 +19,22 @@
                     <span class="menu-icon">▦</span>
                     Dashboard
                 </a>
+                <a href="{{ route('portal.active') }}" class="{{ request()->routeIs('portal.active') ? 'active' : '' }}">
+                    <span class="menu-icon">📦</span>
+                    Pesanan Aktif
+                </a>
+                <a href="{{ route('portal.history') }}" class="{{ request()->routeIs('portal.history') ? 'active' : '' }}">
+                    <span class="menu-icon">📋</span>
+                    Riwayat
+                </a>
+                <a href="{{ route('portal.points') }}" class="{{ request()->routeIs('portal.points') ? 'active' : '' }}">
+                    <span class="menu-icon">⭐</span>
+                    Poin Saya
+                </a>
+                <a href="{{ route('portal.account') }}" class="{{ request()->routeIs('portal.account') ? 'active' : '' }}">
+                    <span class="menu-icon">👤</span>
+                    Manajemen Akun
+                </a>
             </nav>
 
             <form method="POST" action="{{ route('logout') }}" class="logout-area">

@@ -54,7 +54,14 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/portal', [CustomerPortalController::class, 'index'])->name('portal.dashboard');
+    Route::get('/portal/active', [CustomerPortalController::class, 'active'])->name('portal.active');
+    Route::get('/portal/history', [CustomerPortalController::class, 'history'])->name('portal.history');
+    Route::get('/portal/points', [CustomerPortalController::class, 'points'])->name('portal.points');
+    
+    // Route Manajemen Akun
+    Route::get('/portal/account', [CustomerPortalController::class, 'account'])->name('portal.account');
+    Route::post('/portal/account/update', [CustomerPortalController::class, 'updateAccount'])->name('portal.account.update');
+    
     Route::get('/portal/orders/{order}', [CustomerPortalController::class, 'show'])->name('portal.orders.show');
-
     Route::post('/portal/pickups', [DeliveryRequestController::class, 'store'])->name('portal.pickups.store');
 });
