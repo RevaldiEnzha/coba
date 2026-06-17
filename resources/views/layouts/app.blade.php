@@ -21,17 +21,18 @@
                 </a>
 
                 <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
-                    <span class="menu-icon">👥</span>
                     Manajemen Pelanggan
                 </a>
 
+                <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.*') ? 'active' : '' }}">
+                    Manajemen Layanan
+                </a>
+
                 <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders.*') ? 'active' : '' }}">
-                    <span class="menu-icon">▣</span>
                     Manajemen Transaksi
                 </a>
 
                 <a href="{{ route('tracking.index') }}" class="{{ request()->routeIs('tracking.*') ? 'active' : '' }}">
-                    <span class="menu-icon">◇</span>
                     Order Tracking
                 </a>
 
@@ -41,13 +42,11 @@
                 </a>
 
                 <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}">
-                    <span class="menu-icon">▭</span>
                     Pembayaran
                 </a>
 
                 @if(auth()->user()->role === 'admin')
                     <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                        <span class="menu-icon">▤</span>
                         Laporan Keuangan
                     </a>
                 @endif

@@ -45,6 +45,7 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
     Route::post('/delivery-requests/{deliveryRequest}/confirm', [DeliveryRequestController::class, 'confirm'])
     ->name('delivery.confirm');
 
+    Route::resource('services', App\Http\Controllers\ServiceController::class)->except(['create', 'show', 'edit']);
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
