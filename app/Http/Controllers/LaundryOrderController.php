@@ -12,22 +12,30 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 class LaundryOrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = LaundryOrder::with(['customer.user', 'service', 'cashier'])
-            ->latest()
-            ->get();
+        $search = $request->search;
+        $cleanSearch = preg_replace('/[^0-9]/', '', $search);
 
-        $customers = Customer::with('user')
-            ->whereHas('user', function ($query) {
-                $query->where('role', 'pelanggan');
+        $orders = \App\Models\LaundryOrder::with(['customer.user', 'service'])
+            ->when($search, function ($query) use ($search, $cleanSearch) {
+                $query->where(function ($q) use ($search, $cleanSearch) {
+                    $q->whereHas('customer.user', function ($u) use ($search) {
+                        $u->where('name', 'like', "%{$search}%");
+                    });
+                    if ($cleanSearch !== '') {
+                        $q->orWhere('id', (int) $cleanSearch);
+                    }
+                });
             })
             ->latest()
-            ->get();
+            ->paginate(10)->appends(request()->query());
 
-        $services = Service::where('is_active', true)->get();
+        // KEMBALIKAN VARIABEL INI: Dibutuhkan untuk form Modal "Tambah Pesanan"
+        $customers = \App\Models\Customer::with('user')->get();
+        $services = \App\Models\Service::where('is_active', true)->get();
 
-        return view('orders.index', compact('orders', 'customers', 'services'));
+        return view('orders.index', compact('orders', 'search', 'customers', 'services'));
     }
 
     public function create()

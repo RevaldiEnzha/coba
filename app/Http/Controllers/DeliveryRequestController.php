@@ -13,22 +13,51 @@ use Illuminate\Support\Facades\DB;
 
 class DeliveryRequestController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Ambil data permintaan JEMPUT
+        $search = $request->search;
+        // Bersihkan teks (Misal: "JMP-005" menjadi "5" agar bisa dicari di database)
+        $cleanSearch = preg_replace('/[^0-9]/', '', $search);
+
+        // 1. Query untuk tabel JEMPUT (Batas 5 per halaman)
         $pickups = DeliveryRequest::with(['customer.user', 'service', 'laundryOrder'])
             ->where('type', 'jemput')
+            ->when($search, function ($query) use ($search, $cleanSearch) {
+                $query->where(function($q) use ($search, $cleanSearch) {
+                    $q->where('address', 'like', "%{$search}%")
+                      ->orWhereHas('customer.user', function($u) use ($search) {
+                          $u->where('name', 'like', "%{$search}%");
+                      });
+                    if ($cleanSearch !== '') {
+                        $q->orWhere('id', (int) $cleanSearch);
+                    }
+                });
+            })
             ->latest()
-            ->get();
+            // Menggunakan nama page khusus 'pickup_page' agar tidak bentrok
+            ->paginate(5, ['*'], 'pickup_page')
+            ->appends(request()->query()); 
 
-        // 2. Ambil data permintaan ANTAR
+        // 2. Query untuk tabel ANTAR (Batas 5 per halaman)
         $deliveries = DeliveryRequest::with(['customer.user', 'laundryOrder'])
             ->where('type', 'antar')
+            ->when($search, function ($query) use ($search, $cleanSearch) {
+                $query->where(function($q) use ($search, $cleanSearch) {
+                    $q->where('address', 'like', "%{$search}%")
+                      ->orWhereHas('customer.user', function($u) use ($search) {
+                          $u->where('name', 'like', "%{$search}%");
+                      });
+                    if ($cleanSearch !== '') {
+                        $q->orWhere('id', (int) $cleanSearch);
+                    }
+                });
+            })
             ->latest()
-            ->get();
+            // Menggunakan nama page khusus 'delivery_page' agar tidak bentrok
+            ->paginate(5, ['*'], 'delivery_page')
+            ->appends(request()->query());
 
-        // Kirim kedua variabel ke view
-        return view('delivery.index', compact('pickups', 'deliveries'));
+        return view('delivery.index', compact('pickups', 'deliveries', 'search'));
     }
 
     // ... fungsi index() yang sudah ada ...

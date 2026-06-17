@@ -13,25 +13,29 @@ class PaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $invoices = Invoice::with([
-                'laundryOrder.customer.user',
-                'laundryOrder.service',
-                'payment'
-            ])
+        $search = $request->search;
+        $cleanSearch = preg_replace('/[^0-9]/', '', $search);
+
+        $invoices = \App\Models\Invoice::with(['laundryOrder.customer.user'])
+            ->when($search, function ($query) use ($search, $cleanSearch) {
+                $query->where(function ($q) use ($search, $cleanSearch) {
+                    $q->where('invoice_code', 'like', "%{$search}%")
+                      ->orWhereHas('laundryOrder.customer.user', function ($u) use ($search) {
+                          $u->where('name', 'like', "%{$search}%");
+                      });
+                    if ($cleanSearch !== '') {
+                        $q->orWhere('laundry_order_id', (int) $cleanSearch);
+                    }
+                });
+            })
             ->latest()
-            ->get();
+            ->paginate(10)->appends(request()->query());
 
-        $paidInvoice = null;
+        // KEMBALIKAN VARIABEL INI: Dibutuhkan untuk memunculkan struk (modal) setelah bayar
+        // Biasanya diambil dari Session setelah fungsi bayar berhasil
+        $paidInvoice = session('paidInvoice') ?? null;
 
-        if ($request->filled('paid')) {
-            $paidInvoice = Invoice::with([
-                    'laundryOrder.customer.user',
-                    'payment'
-                ])
-                ->find($request->paid);
-        }
-
-        return view('payments.index', compact('invoices', 'paidInvoice'));
+        return view('payments.index', compact('invoices', 'search', 'paidInvoice'));
     }
 
     public function process(Request $request, Invoice $invoice)

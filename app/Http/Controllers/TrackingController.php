@@ -13,22 +13,36 @@ use Illuminate\Support\Facades\Http;
 
 class TrackingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = LaundryOrder::with(['customer.user', 'service'])
-            ->latest()
-            ->get();
+        $search = $request->search;
+        $cleanSearch = preg_replace('/[^0-9]/', '', $search);
 
+        $orders = \App\Models\LaundryOrder::with(['customer.user', 'service'])
+            ->whereNotIn('status', ['selesai', 'dibatalkan'])
+            ->when($search, function ($query) use ($search, $cleanSearch) {
+                $query->where(function ($q) use ($search, $cleanSearch) {
+                    $q->whereHas('customer.user', function ($u) use ($search) {
+                        $u->where('name', 'like', "%{$search}%");
+                    });
+                    if ($cleanSearch !== '') {
+                        $q->orWhere('id', (int) $cleanSearch);
+                    }
+                });
+            })
+            ->latest()
+            ->paginate(10)->appends(request()->query());
+
+        // KEMBALIKAN VARIABEL INI: Dibutuhkan untuk opsi dropdown ubah status
         $statusOptions = [
-            'diterima' => 'Masuk',
+            'diterima' => 'Diterima',
             'dicuci' => 'Sedang Dicuci',
-            'dijemur' => 'Pengeringan',
-            'disetrika' => 'Setrika',
-            'siap_diambil' => 'Siap Diambil',
-            'selesai' => 'Selesai',
+            'dijemur' => 'Sedang Dijemur',
+            'disetrika' => 'Sedang Disetrika',
+            'siap_diambil' => 'Siap Diambil / Diantar'
         ];
 
-        return view('tracking.index', compact('orders', 'statusOptions'));
+        return view('tracking.index', compact('orders', 'search', 'statusOptions'));
     }
 
     public function updateStatus(Request $request, LaundryOrder $order)
