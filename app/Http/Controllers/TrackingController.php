@@ -55,31 +55,82 @@ class TrackingController extends Controller
             ],
         ]);
 
-        // 1. Update status cucian di database
-        $order->update([
-            'status' => $validated['status'],
-        ]);
+        $oldStatus = $order->status;
+        $newStatus = $validated['status'];
 
-        // 2. Logika Pengiriman WhatsApp Otomatis
-        $waSent = false; // Penanda awal (dianggap belum terkirim)
+        $waSent = false;
+        $waWarning = null;
 
-        if ($validated['status'] === 'siap_diambil') {
-            $customer = $order->customer;
+        DB::transaction(function () use ($order, $oldStatus, $newStatus, &$waSent, &$waWarning) {
+            // 1. Update status order
+            $order->update([
+                'status' => $newStatus,
+            ]);
 
-            // Pastikan data pelanggan dan nomor HP tersedia
-            if ($customer && $customer->phone) {
-                $phone = $customer->phone;
+            // 2. Simpan riwayat status agar timestamp tercatat
+            OrderStatusHistory::create([
+                'laundry_order_id' => $order->id,
+                'user_id' => Auth::id(),
+                'status' => $newStatus,
+                'note' => 'Status diubah dari ' . str_replace('_', ' ', $oldStatus) . ' menjadi ' . str_replace('_', ' ', $newStatus) . '.',
+            ]);
+
+            // 3. Kirim/log notifikasi WhatsApp hanya saat status siap_diambil
+            if ($newStatus === 'siap_diambil') {
+                $order->load(['customer.user']);
+
+                $customer = $order->customer;
+                $phone = $customer->phone ?? null;
+
+                if (!$customer || !$phone) {
+                    $waWarning = 'Nomor HP pelanggan tidak tersedia.';
+
+                    NotificationLog::create([
+                        'laundry_order_id' => $order->id,
+                        'customer_id' => $customer->id ?? null,
+                        'channel' => 'whatsapp',
+                        'recipient' => $phone ?? '-',
+                        'message' => 'Notifikasi tidak dikirim karena nomor HP pelanggan tidak tersedia.',
+                        'status' => 'failed',
+                        'error_message' => $waWarning,
+                    ]);
+
+                    return;
+                }
+
                 $name = $customer->user->name ?? 'Pelanggan';
                 $orderId = 'ORD-' . str_pad($order->id, 3, '0', STR_PAD_LEFT);
                 $total = number_format($order->total_price, 0, ',', '.');
 
-                // Susun isi pesan WhatsApp lengkap
-                $message = "Halo *$name*!\n\nCucian Anda dengan No. Order *$orderId* sudah *SIAP DIAMBIL* di outlet kami.\n\nTotal Tagihan: Rp $total\n\nTerima kasih telah mempercayakan cucian Anda kepada kami!";
+                $pickupInfo = "Silakan ambil cucian di outlet. Jika tersedia, Anda juga dapat memilih opsi pengantaran melalui portal pelanggan.";
+
+                $message = "Halo *{$name}*!\n\n"
+                    . "Cucian Anda dengan No. Order *{$orderId}* sudah *SIAP DIAMBIL*.\n\n"
+                    . "Total Tagihan: Rp {$total}\n"
+                    . "{$pickupInfo}\n\n"
+                    . "Terima kasih telah menggunakan layanan Laundry System.";
+
+                $token = env('FONNTE_TOKEN');
+
+                if (!$token) {
+                    $waWarning = 'Token Fonnte belum diisi di file .env.';
+
+                    NotificationLog::create([
+                        'laundry_order_id' => $order->id,
+                        'customer_id' => $customer->id,
+                        'channel' => 'whatsapp',
+                        'recipient' => $phone,
+                        'message' => $message,
+                        'status' => 'failed',
+                        'error_message' => $waWarning,
+                    ]);
+
+                    return;
+                }
 
                 try {
-                    // Tembak API Fonnte
                     $response = Http::withHeaders([
-                        'Authorization' => env('FONNTE_TOKEN')
+                        'Authorization' => $token,
                     ])->post('https://api.fonnte.com/send', [
                         'target' => $phone,
                         'message' => $message,
@@ -87,11 +138,10 @@ class TrackingController extends Controller
                     ]);
 
                     $responseData = $response->json();
-                    
-                    // Cek apakah respons dari server Fonnte sukses
+
                     if ($response->successful() && isset($responseData['status']) && $responseData['status']) {
-                        $waSent = true; // Tandai bahwa WA sukses terkirim!
-                        
+                        $waSent = true;
+
                         NotificationLog::create([
                             'laundry_order_id' => $order->id,
                             'customer_id' => $customer->id,
@@ -102,7 +152,8 @@ class TrackingController extends Controller
                             'sent_at' => now(),
                         ]);
                     } else {
-                        // Jika server merespon tapi ada masalah (misal nomor tidak valid)
+                        $waWarning = $responseData['reason'] ?? 'API WhatsApp mengembalikan respons gagal.';
+
                         NotificationLog::create([
                             'laundry_order_id' => $order->id,
                             'customer_id' => $customer->id,
@@ -110,12 +161,12 @@ class TrackingController extends Controller
                             'recipient' => $phone,
                             'message' => $message,
                             'status' => 'failed',
-                            'error_message' => $responseData['reason'] ?? 'Unknown API Error',
+                            'error_message' => $waWarning,
                         ]);
                     }
+                } catch (\Throwable $e) {
+                    $waWarning = $e->getMessage();
 
-                } catch (\Exception $e) {
-                    // Jika gagal total (misal internet putus atau server Fonnte down)
                     NotificationLog::create([
                         'laundry_order_id' => $order->id,
                         'customer_id' => $customer->id,
@@ -123,24 +174,18 @@ class TrackingController extends Controller
                         'recipient' => $phone,
                         'message' => $message,
                         'status' => 'failed',
-                        'error_message' => $e->getMessage(),
+                        'error_message' => $waWarning,
                     ]);
                 }
             }
-        }
+        });
 
-        // ==========================================
-        // 3. PENGECEKAN NOTIFIKASI UNTUK KASIR
-        // ==========================================
-        
-        // Jika statusnya Siap Diambil TAPI WA gagal terkirim (atau pelanggan tidak punya no HP)
-        if ($validated['status'] === 'siap_diambil' && !$waSent) {
+        if ($newStatus === 'siap_diambil' && !$waSent) {
             return redirect()
                 ->route('tracking.index')
-                ->with('info', 'Status diperbarui, NAMUN pesan WA GAGAL terkirim.');
+                ->with('info', 'Status berhasil diperbarui, tetapi notifikasi WhatsApp gagal: ' . ($waWarning ?? 'penyebab tidak diketahui.'));
         }
 
-        // Jika berhasil semua (atau untuk perubahan status selain "siap_diambil")
         return redirect()
             ->route('tracking.index')
             ->with('success', 'Status cucian berhasil diperbarui.');

@@ -64,10 +64,10 @@ class CustomerPortalController extends Controller
 
     public function active()
     {
-        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        $customer = Auth::user()->customer;
 
         // 1. Ambil transaksi laundry yang sedang berjalan (seperti biasa)
-        $activeOrders = \App\Models\LaundryOrder::where('customer_id', $customer->id)
+        $activeOrders = LaundryOrder::where('customer_id', $customer->id)
             ->whereNotIn('status', ['selesai', 'dibatalkan'])
             ->latest()
             ->get();
@@ -98,7 +98,7 @@ class CustomerPortalController extends Controller
     public function points()
     {
         $customer = Auth::user()->customer;
-        
+
         // Menggunakan nama kelas absolut untuk menghindari error Namespace Not Found
         $pointTransactions = \App\Models\PointTransaction::where('customer_id', $customer->id)
             ->latest()
@@ -117,7 +117,7 @@ class CustomerPortalController extends Controller
 
     public function updateAccount(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $customer = $user->customer;
 
         $request->validate([
@@ -134,10 +134,10 @@ class CustomerPortalController extends Controller
 
         // Cek Keamanan jika ingin ganti password
         if ($request->filled('password_sekarang')) {
-            if (!\Illuminate\Support\Facades\Hash::check($request->password_sekarang, $user->password)) {
+            if (!Hash::check($request->password_sekarang, $user->password)) {
                 return back()->withErrors(['password_sekarang' => 'Password saat ini salah.']);
             }
-            $user->password = \Illuminate\Support\Facades\Hash::make($request->password_baru);
+            $user->password = Hash::make($request->password_baru);
         }
 
         // Update tabel users
@@ -164,11 +164,11 @@ class CustomerPortalController extends Controller
         }
 
         // Mengambil layanan laundry yang aktif untuk ditampilkan dalam form dropdown select
-        $services = \App\Models\Service::where('is_active', true)->get();
+        $services = Service::where('is_active', true)->get();
 
         return view('portal.create_pickup', compact('customer', 'services'));
     }
-    public function requestDelivery(\Illuminate\Http\Request $request, \App\Models\LaundryOrder $order)
+    public function requestDelivery(Request $request, LaundryOrder $order)
     {
         // 1. Validasi Keamanan dan Ketersediaan Peta
         $request->validate([
@@ -179,7 +179,7 @@ class CustomerPortalController extends Controller
             'latitude.required' => 'Silakan tentukan titik lokasi pada peta terlebih dahulu.',
         ]);
 
-        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        $customer = Auth::user()->customer;
 
         if (!$customer || $order->customer_id !== $customer->id) {
             abort(403, 'Anda tidak memiliki akses ke order ini.');
@@ -205,7 +205,7 @@ class CustomerPortalController extends Controller
         $outletLng = 109.337930; // Koordinat Longitude Laundry (PASTIKAN INI SESUAI OUTLET ANDA)
 
         $earthRadius = 6371; // Radius bumi dalam KM
-        
+
         // Memaksa konversi tipe data ke float agar tidak kacau
         $latFrom = deg2rad((float) $outletLat);
         $lonFrom = deg2rad((float) $outletLng);
@@ -219,13 +219,13 @@ class CustomerPortalController extends Controller
              cos($latFrom) * cos($latTo) *
              sin($lonDelta / 2) * sin($lonDelta / 2);
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        
+
         $distance = round($earthRadius * $c, 2);
 
         // 3. Logika Biaya Tambahan Jarak
         $fee = 0;
         if ($distance > 2) {
-            $kelebihanKm = ceil($distance - 2); 
+            $kelebihanKm = ceil($distance - 2);
             $fee = $kelebihanKm * 3000;
         }
 
@@ -270,9 +270,9 @@ class CustomerPortalController extends Controller
             return back()->with('info', 'Terjadi kesalahan sistem saat memproses biaya antar. Silakan coba lagi.');
         }
     }
-    public function cancelDelivery(\App\Models\LaundryOrder $order)
+    public function cancelDelivery(LaundryOrder $order)
     {
-        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        $customer = Auth::user()->customer;
 
         if (!$customer || $order->customer_id !== $customer->id) {
             abort(403, 'Anda tidak memiliki akses ke order ini.');
@@ -297,7 +297,7 @@ class CustomerPortalController extends Controller
             }
 
             // 2. KEMBALIKAN HARGA SECARA MUTLAK
-            // Alih-alih mengurangi (yang bisa error jika ditekan berkali-kali), 
+            // Alih-alih mengurangi (yang bisa error jika ditekan berkali-kali),
             // kita paksakan harganya kembali ke rumus asli: Subtotal - Diskon.
             $order->delivery_fee = 0;
             $order->total_price = ($order->subtotal ?? 0) - ($order->discount ?? 0);
@@ -321,13 +321,13 @@ class CustomerPortalController extends Controller
     }
     public function editProfile()
     {
-        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        $customer = Auth::user()->customer;
         return view('portal.profile', compact('customer'));
     }
 
     public function updateProfile(Request $request)
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $customer = $user->customer;
 
         $request->validate([
@@ -340,9 +340,9 @@ class CustomerPortalController extends Controller
 
         $user->name = $request->name;
         $user->username = $request->username;
-        
+
         if ($request->filled('password')) {
-            $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
         $user->save();
 
@@ -357,7 +357,7 @@ class CustomerPortalController extends Controller
     public function cancelPickup(\App\Models\DeliveryRequest $deliveryRequest)
     {
         // 1. Keamanan: Pastikan data jemput ini benar-benar milik pelanggan yang sedang login
-        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        $customer = Auth::user()->customer;
         if ($deliveryRequest->customer_id !== $customer->id) {
             abort(403, 'Akses ditolak.');
         }

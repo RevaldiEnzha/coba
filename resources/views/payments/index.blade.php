@@ -74,7 +74,7 @@
                                 data-customer="{{ $user->name ?? '-' }}"
                                 data-total="{{ $invoice->total_amount }}"
                                 data-date="{{ $invoice->updated_at->format('d M Y H:i') }}"
-                                data-method="{{ strtoupper($invoice->payment->method ?? $invoice->payment->payment_method ?? '-') }}"
+                                data-method="{{ strtoupper(optional($invoice->payment)->method ?? '-') }}"
                             >
                                 📄 Lihat Nota
                             </button>
@@ -191,7 +191,14 @@
 {{-- MODAL LIHAT NOTA (Cetak Ulang) --}}
 <div class="modal-overlay" id="receiptModal">
     <div class="payment-success-card" style="position: relative;">
-        <button type="button" class="modal-close-btn" data-close-receipt-modal style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        <button
+            type="button"
+            class="modal-close-btn"
+            data-close-receipt-modal
+            style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; cursor: pointer;"
+        >
+            &times;
+        </button>
         <h2 style="margin-top: 10px;">Nota Pembayaran</h2>
         <p>Salinan nota untuk transaksi yang sudah lunas.</p>
 
@@ -238,7 +245,15 @@
     @endphp
 
     <div class="modal-overlay show" id="successPaymentModal">
-        <div class="payment-success-card">
+        <div class="payment-success-card" style="position: relative;">
+            <a
+                href="{{ route('payments.index') }}"
+                class="modal-close-btn"
+                style="position: absolute; right: 20px; top: 20px; text-decoration: none; color: #94a3b8; font-size: 24px;"
+            >
+                &times;
+            </a>
+
             <h2>Pembayaran Berhasil!</h2>
             <p>Pembayaran untuk invoice {{ $paidInvoice->invoice_code }} telah dikonfirmasi.</p>
 
@@ -267,7 +282,7 @@
 
                 <div class="payment-detail-row">
                     <span>Tanggal</span>
-                    <strong>{{ now()->format('d M Y') }}</strong>
+                    <strong>{{ $paidPayment?->paid_at ? \Carbon\Carbon::parse($paidPayment->paid_at)->format('d M Y H:i') : $paidInvoice->updated_at->format('d M Y H:i') }}</strong>
                 </div>
             </div>
 
@@ -288,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const paymentForm = document.getElementById('paymentForm');
     const processPaymentBtn = document.getElementById('processPaymentBtn');
-    
+
     const invoiceCode = document.getElementById('modalInvoiceCode');
     const customerName = document.getElementById('modalCustomerName');
     const serviceName = document.getElementById('modalServiceName');
