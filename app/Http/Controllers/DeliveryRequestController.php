@@ -15,47 +15,23 @@ class DeliveryRequestController extends Controller
 {
     public function index()
     {
-        $requests = DeliveryRequest::with(['customer.user', 'service', 'laundryOrder'])
+        // 1. Ambil data permintaan JEMPUT
+        $pickups = DeliveryRequest::with(['customer.user', 'service', 'laundryOrder'])
             ->where('type', 'jemput')
             ->latest()
             ->get();
 
-        return view('delivery.index', compact('requests'));
+        // 2. Ambil data permintaan ANTAR
+        $deliveries = DeliveryRequest::with(['customer.user', 'laundryOrder'])
+            ->where('type', 'antar')
+            ->latest()
+            ->get();
+
+        // Kirim kedua variabel ke view
+        return view('delivery.index', compact('pickups', 'deliveries'));
     }
 
-    public function store(Request $request)
-    {
-        $user = Auth::user();
-        $customer = $user->customer;
-
-        if (!$customer) {
-            abort(403, 'Data pelanggan tidak ditemukan.');
-        }
-
-        $validated = $request->validate([
-            'service_id' => ['required', 'exists:services,id'],
-            'address' => ['required', 'string'],
-            'note' => ['nullable', 'string', 'max:500'],
-            'scheduled_at' => ['required', 'date'],
-        ]);
-
-        DeliveryRequest::create([
-            'customer_id' => $customer->id,
-            'service_id' => $validated['service_id'],
-            'laundry_order_id' => null,
-            'type' => 'jemput',
-            'address' => $validated['address'],
-            'note' => $validated['note'] ?? null,
-            'distance_km' => 0,
-            'fee' => 0,
-            'status' => 'menunggu_konfirmasi',
-            'scheduled_at' => $validated['scheduled_at'],
-        ]);
-
-        return redirect()
-            ->route('portal.dashboard')
-            ->with('success', 'Permintaan jemput cucian berhasil dikirim.');
-    }
+    // ... (biarkan fungsi store yang ada di bawahnya) ...
 
     public function updateStatus(Request $request, DeliveryRequest $deliveryRequest)
     {
@@ -70,9 +46,10 @@ class DeliveryRequestController extends Controller
             'status' => $validated['status'],
         ]);
 
+        // Mengubah pesannya menjadi lebih umum (karena bisa jemput atau antar)
         return redirect()
             ->route('delivery.index')
-            ->with('success', 'Status permintaan jemput berhasil diperbarui.');
+            ->with('success', 'Status permintaan (jemput/antar) berhasil diperbarui.');
     }
 
     public function confirm(Request $request, DeliveryRequest $deliveryRequest)

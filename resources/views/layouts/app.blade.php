@@ -37,7 +37,7 @@
 
                 <a href="{{ route('delivery.index') }}" class="{{ request()->routeIs('delivery.*') ? 'active' : '' }}">
                     <span class="menu-icon">🚚</span>
-                    Pesanan Jemput
+                    Pesanan Jemput & Antar
                 </a>
 
                 <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}">

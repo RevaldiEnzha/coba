@@ -8,17 +8,17 @@ class DeliveryRequest extends Model
 {
     protected $fillable = [
         'customer_id',
-        'service_id',
         'laundry_order_id',
+        'service_id',
         'type',
         'address',
-        'note',
         'distance_km',
         'fee',
         'status',
-        'scheduled_at',
+        'note',
+        'scheduled_at'
     ];
-
+    
     public function customer()
     {
         return $this->belongsTo(Customer::class);

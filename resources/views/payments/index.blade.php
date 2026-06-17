@@ -14,9 +14,9 @@
     <table class="payment-table">
         <thead>
             <tr>
-                <th>No. Invoice</th>
+                <th>No. Order</th>
                 <th>Nama Pelanggan</th>
-                <th>Total Biaya</th>
+                <th>Total Tagihan</th>
                 <th>Tanggal Jatuh Tempo</th>
                 <th>Status Pembayaran</th>
                 <th>Aksi</th>
@@ -40,9 +40,12 @@
                 @endphp
 
                 <tr>
-                    <td>{{ $invoice->invoice_code }}</td>
+                    <td>
+                        <strong>ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</strong><br>
+                        <small style="color: #94a3b8; font-size: 11px;">{{ $invoice->invoice_code }}</small>
+                    </td>
                     <td>{{ $user->name ?? '-' }}</td>
-                    <td>Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}</td>
+                    <td><strong>Rp {{ number_format($invoice->total_amount, 0, ',', '.') }}</strong></td>
                     <td>{{ $dueDate }}</td>
                     <td>
                         <span class="payment-status {{ $invoice->status === 'paid' ? 'paid' : 'unpaid' }}">
@@ -50,24 +53,37 @@
                         </span>
                     </td>
                     <td>
-                        <button
-                            type="button"
-                            class="payment-detail-btn open-payment-modal"
-                            data-id="{{ $invoice->id }}"
-                            data-invoice="{{ $invoice->invoice_code }}"
-                            data-customer="{{ $user->name ?? '-' }}"
-                            data-service="{{ $service->name ?? '-' }}"
-                            data-weight="{{ $order->weight ?? 0 }}"
-                            data-quantity="{{ $order->quantity ?? 0 }}"
-                            data-subtotal="{{ $invoice->subtotal }}"
-                            data-delivery="{{ $invoice->delivery_fee }}"
-                            data-total="{{ $baseTotal }}"
-                            data-points="{{ $customer->points_balance ?? 0 }}"
-                            data-status="{{ $invoice->status }}"
-                            data-action="{{ route('payments.process', $invoice) }}"
-                        >
-                            Rincian & Bayar
-                        </button>
+                        @if($invoice->status === 'paid')
+                            <button
+                                type="button"
+                                class="payment-detail-btn open-receipt-modal"
+                                style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;"
+                                data-invoice="{{ $invoice->invoice_code }}"
+                                data-customer="{{ $user->name ?? '-' }}"
+                                data-total="{{ $invoice->total_amount }}"
+                                data-date="{{ $invoice->updated_at->format('d M Y H:i') }}"
+                            >
+                                📄 Lihat Nota
+                            </button>
+                        @else
+                            <button
+                                type="button"
+                                class="payment-detail-btn open-payment-modal"
+                                data-id="{{ $invoice->id }}"
+                                data-invoice="{{ $invoice->invoice_code }}"
+                                data-customer="{{ $user->name ?? '-' }}"
+                                data-service="{{ $service->name ?? '-' }}"
+                                data-weight="{{ $order->weight ?? 0 }}"
+                                data-quantity="{{ $order->quantity ?? 0 }}"
+                                data-subtotal="{{ $invoice->subtotal }}"
+                                data-delivery="{{ $invoice->delivery_fee }}"
+                                data-total="{{ $baseTotal }}"
+                                data-points="{{ $customer->points_balance ?? 0 }}"
+                                data-action="{{ route('payments.process', $invoice) }}"
+                            >
+                                Rincian & Bayar
+                            </button>
+                        @endif
                     </td>
                 </tr>
             @empty
@@ -81,7 +97,7 @@
     </table>
 </div>
 
-{{-- MODAL RINCIAN PEMBAYARAN --}}
+{{-- MODAL RINCIAN PEMBAYARAN (Belum Lunas) --}}
 <div class="modal-overlay" id="paymentModal">
     <div class="payment-modal-card">
         <div class="payment-modal-header">
@@ -159,7 +175,43 @@
     </div>
 </div>
 
-{{-- MODAL PEMBAYARAN BERHASIL --}}
+{{-- MODAL LIHAT NOTA (Cetak Ulang) --}}
+<div class="modal-overlay" id="receiptModal">
+    <div class="payment-success-card" style="position: relative;">
+        <button type="button" class="modal-close-btn" data-close-receipt-modal style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        <h2 style="margin-top: 10px;">Nota Pembayaran</h2>
+        <p>Salinan nota untuk transaksi yang sudah lunas.</p>
+
+        <div class="receipt-box">
+            <div class="payment-detail-row">
+                <span>Invoice</span>
+                <strong id="reprintInvoiceCode">-</strong>
+            </div>
+
+            <div class="payment-detail-row">
+                <span>Pelanggan</span>
+                <strong id="reprintCustomerName">-</strong>
+            </div>
+
+            <div class="payment-detail-row">
+                <span>Total Dibayar</span>
+                <strong id="reprintTotal">-</strong>
+            </div>
+
+            <div class="payment-detail-row">
+                <span>Waktu Bayar</span>
+                <strong id="reprintDate">-</strong>
+            </div>
+        </div>
+
+        <div class="payment-modal-actions">
+            <button type="button" class="modal-cancel-btn" data-close-receipt-modal>Tutup</button>
+            <button type="button" class="modal-submit-btn" onclick="window.print()">🖨️ Cetak Nota</button>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL PEMBAYARAN BERHASIL (Muncul Sekali Pasca Bayar) --}}
 @if($paidInvoice)
     @php
         $paidOrder = $paidInvoice->laundryOrder;
@@ -198,7 +250,7 @@
 
             <div class="payment-modal-actions">
                 <a href="{{ route('payments.index') }}" class="modal-cancel-btn success-link">Selesai</a>
-                <button type="button" class="modal-submit-btn" onclick="window.print()">Unduh Nota</button>
+                <button type="button" class="modal-submit-btn" onclick="window.print()">🖨️ Unduh Nota</button>
             </div>
         </div>
     </div>
@@ -206,13 +258,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // VARIABEL MODAL PEMBAYARAN UTAMA
     const modal = document.getElementById('paymentModal');
     const openButtons = document.querySelectorAll('.open-payment-modal');
     const closeButtons = document.querySelectorAll('[data-close-payment-modal]');
 
     const paymentForm = document.getElementById('paymentForm');
     const processPaymentBtn = document.getElementById('processPaymentBtn');
-
+    
     const invoiceCode = document.getElementById('modalInvoiceCode');
     const customerName = document.getElementById('modalCustomerName');
     const serviceName = document.getElementById('modalServiceName');
@@ -222,6 +275,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalText = document.getElementById('modalTotal');
     const pointsInput = document.getElementById('pointsUsed');
     const availablePointsText = document.getElementById('availablePointsText');
+
+    // VARIABEL MODAL LIHAT NOTA
+    const receiptModal = document.getElementById('receiptModal');
+    const openReceiptButtons = document.querySelectorAll('.open-receipt-modal');
+    const closeReceiptButtons = document.querySelectorAll('[data-close-receipt-modal]');
+
+    const reprintInvoice = document.getElementById('reprintInvoiceCode');
+    const reprintCustomer = document.getElementById('reprintCustomerName');
+    const reprintTotal = document.getElementById('reprintTotal');
+    const reprintDate = document.getElementById('reprintDate');
 
     let currentBaseTotal = 0;
     let currentAvailablePoints = 0;
@@ -235,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }).format(number);
     }
 
+    // FUNGSI MODAL PEMBAYARAN
     function openModal() {
         modal.classList.add('show');
         document.body.classList.add('modal-open');
@@ -260,8 +324,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     openButtons.forEach(button => {
         button.addEventListener('click', function () {
-            const status = this.dataset.status;
-
             paymentForm.action = this.dataset.action;
 
             invoiceCode.innerText = this.dataset.invoice;
@@ -279,9 +341,6 @@ document.addEventListener('DOMContentLoaded', function () {
             pointsInput.max = currentAvailablePoints;
             availablePointsText.innerText = `Poin tersedia: ${currentAvailablePoints}`;
 
-            processPaymentBtn.disabled = status === 'paid';
-            processPaymentBtn.innerText = status === 'paid' ? 'Sudah Lunas' : 'Proses Pembayaran';
-
             updateTotal();
             openModal();
         });
@@ -296,6 +355,37 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.addEventListener('click', function (event) {
         if (event.target === modal) {
             closeModal();
+        }
+    });
+
+    // FUNGSI MODAL LIHAT NOTA
+    function openReceipt() {
+        receiptModal.classList.add('show');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeReceipt() {
+        receiptModal.classList.remove('show');
+        document.body.classList.remove('modal-open');
+    }
+
+    openReceiptButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            reprintInvoice.innerText = this.dataset.invoice;
+            reprintCustomer.innerText = this.dataset.customer;
+            reprintTotal.innerText = rupiah(Number(this.dataset.total || 0));
+            reprintDate.innerText = this.dataset.date;
+            openReceipt();
+        });
+    });
+
+    closeReceiptButtons.forEach(button => {
+        button.addEventListener('click', closeReceipt);
+    });
+
+    receiptModal.addEventListener('click', function (event) {
+        if (event.target === receiptModal) {
+            closeReceipt();
         }
     });
 });

@@ -17,6 +17,7 @@
                 <th>No. Order</th>
                 <th>Nama Pelanggan</th>
                 <th>Layanan</th>
+                <th>Total Harga</th>
                 <th>Tanggal Masuk</th>
                 <th>Estimasi Selesai</th>
                 <th>Status Saat Ini</th>
@@ -47,9 +48,10 @@
                 @endphp
 
                 <tr>
-                    <td>ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</td>
+                    <td><strong>ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</strong></td>
                     <td>{{ $order->customer->user->name ?? '-' }}</td>
                     <td>{{ $order->service->name ?? '-' }}</td>
+                    <td><strong>Rp {{ number_format($order->total_price, 0, ',', '.') }}</strong></td>
                     <td>{{ $order->created_at ? $order->created_at->format('d M Y') : '-' }}</td>
                     <td>{{ $estimatedDate }}</td>
                     <td>
@@ -62,11 +64,7 @@
                             @csrf
                             @method('PATCH')
 
-                            <select
-                                name="status"
-                                class="tracking-status-select"
-                                onchange="this.form.submit()"
-                            >
+                            <select name="status" class="tracking-status-select" onchange="this.form.submit()">
                                 @foreach($statusOptions as $value => $label)
                                     <option value="{{ $value }}" {{ $order->status === $value ? 'selected' : '' }}>
                                         {{ $label }}
@@ -78,7 +76,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="empty-row">
+                    <td colspan="8" class="empty-row">
                         Belum ada order laundry.
                     </td>
                 </tr>

@@ -36,7 +36,7 @@
 
     <div class="portal-profile-row">
         <span>Nomor Telepon</span>
-        <strong>{{ $customer->phone ?? '-' }}</strong>
+        strong>{{ $customer->phone ?? '-' }}</strong>
     </div>
 
     <div class="portal-profile-row">
@@ -51,91 +51,10 @@
         <p>Buat permintaan agar cucian Anda dijemput oleh staff laundry.</p>
     </div>
 
-    <button type="button" class="portal-pickup-btn" id="openPickupModal">
-        + Ajukan Jemput
-    </button>
+    <a href="{{ route('portal.pickups.create') }}" class="portal-pickup-btn" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+        + Buat Pesanan
+    </a>
 </div>
-
-<div class="modal-overlay" id="pickupModal">
-    <div class="customer-modal-card">
-        <div class="customer-modal-header">
-            <h3>Ajukan Jemput Cucian</h3>
-            <button type="button" class="modal-close-btn" data-close-pickup-modal>&times;</button>
-        </div>
-
-        <form method="POST" action="{{ route('portal.pickups.store') }}" class="customer-modal-form">
-            @csrf
-
-            <div class="modal-form-group">
-                <label>Jenis Layanan</label>
-                <select name="service_id">
-                    <option value="">Pilih layanan</option>
-                    @foreach($services as $service)
-                        <option value="{{ $service->id }}" {{ old('service_id') == $service->id ? 'selected' : '' }}>
-                            {{ $service->name }} - Rp {{ number_format($service->price, 0, ',', '.') }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('service_id') <small class="error-text">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="modal-form-group">
-                <label>Alamat Jemput</label>
-                <textarea name="address" placeholder="Masukkan alamat jemput">{{ old('address', $customer->address ?? '') }}</textarea>
-                @error('address') <small class="error-text">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="modal-form-group">
-                <label>Catatan Cucian</label>
-                <textarea name="note" placeholder="Contoh: pakaian putih dipisah, ada bed cover, dll.">{{ old('note') }}</textarea>
-                @error('note') <small class="error-text">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="modal-form-group">
-                <label>Jadwal Jemput</label>
-                <input type="datetime-local" name="scheduled_at" value="{{ old('scheduled_at') }}">
-                @error('scheduled_at') <small class="error-text">{{ $message }}</small> @enderror
-            </div>
-
-            <div class="customer-modal-actions">
-                <button type="button" class="modal-cancel-btn" data-close-pickup-modal>Batal</button>
-                <button type="submit" class="modal-submit-btn">Kirim Permintaan</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const pickupModal = document.getElementById('pickupModal');
-    const openPickupBtn = document.getElementById('openPickupModal');
-    const closePickupButtons = document.querySelectorAll('[data-close-pickup-modal]');
-
-    function openPickupModal() {
-        pickupModal.classList.add('show');
-        document.body.classList.add('modal-open');
-    }
-
-    function closePickupModal() {
-        pickupModal.classList.remove('show');
-        document.body.classList.remove('modal-open');
-    }
-
-    if (openPickupBtn) {
-        openPickupBtn.addEventListener('click', openPickupModal);
-    }
-
-    closePickupButtons.forEach(button => {
-        button.addEventListener('click', closePickupModal);
-    });
-
-    pickupModal.addEventListener('click', function (event) {
-        if (event.target === pickupModal) {
-            closePickupModal();
-        }
-    });
-});
-</script>
 
 <div class="portal-order-card">
     <h3>Riwayat Order Terbaru</h3>

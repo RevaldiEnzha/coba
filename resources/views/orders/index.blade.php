@@ -27,11 +27,11 @@
     <table class="transaction-table">
         <thead>
             <tr>
-                <th>ID Transaksi</th>
+                <th>No. Order</th>
                 <th>Pelanggan</th>
                 <th>Layanan</th>
                 <th>Jumlah</th>
-                <th>Total</th>
+                <th>Total Harga</th>
                 <th>Tanggal</th>
                 <th>Status</th>
                 <th>Aksi</th>
@@ -51,11 +51,11 @@
                 @endphp
 
                 <tr>
-                    <td>TRX{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</td>
+                    <td><strong>ORD-{{ str_pad($order->id, 3, '0', STR_PAD_LEFT) }}</strong></td>
                     <td>{{ $order->customer->user->name ?? '-' }}</td>
                     <td>{{ $order->service->name ?? '-' }}</td>
                     <td>{{ $jumlah }}</td>
-                    <td>Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
+                    <td><strong>Rp {{ number_format($order->total_price, 0, ',', '.') }}</strong></td>
                     <td>{{ $order->created_at->format('d M Y') }}</td>
                     <td>
                         <span class="transaction-status {{ $statusClass }}">

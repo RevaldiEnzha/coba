@@ -57,11 +57,15 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/portal/active', [CustomerPortalController::class, 'active'])->name('portal.active');
     Route::get('/portal/history', [CustomerPortalController::class, 'history'])->name('portal.history');
     Route::get('/portal/points', [CustomerPortalController::class, 'points'])->name('portal.points');
-    
-    // Route Manajemen Akun
     Route::get('/portal/account', [CustomerPortalController::class, 'account'])->name('portal.account');
     Route::post('/portal/account/update', [CustomerPortalController::class, 'updateAccount'])->name('portal.account.update');
     
+    // Route Halaman Buat Pesanan Baru
+    Route::get('/portal/pickups/create', [CustomerPortalController::class, 'createPickup'])->name('portal.pickups.create');
+
     Route::get('/portal/orders/{order}', [CustomerPortalController::class, 'show'])->name('portal.orders.show');
     Route::post('/portal/pickups', [DeliveryRequestController::class, 'store'])->name('portal.pickups.store');
+    Route::post('/portal/orders/{order}/request-delivery', [CustomerPortalController::class, 'requestDelivery'])
+         ->name('portal.orders.request_delivery');
+    Route::delete('/portal/orders/{order}/cancel-delivery', [CustomerPortalController::class, 'cancelDelivery'])->name('portal.orders.cancel_delivery');
 });

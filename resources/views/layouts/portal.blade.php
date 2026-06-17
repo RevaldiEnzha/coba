@@ -19,6 +19,10 @@
                     <span class="menu-icon">▦</span>
                     Dashboard
                 </a>
+                <a href="{{ route('portal.pickups.create') }}" class="{{ request()->routeIs('portal.pickups.create') ? 'active' : '' }}">
+                    <span class="menu-icon">➕</span>
+                    Buat Pesanan
+                </a>
                 <a href="{{ route('portal.active') }}" class="{{ request()->routeIs('portal.active') ? 'active' : '' }}">
                     <span class="menu-icon">📦</span>
                     Pesanan Aktif
