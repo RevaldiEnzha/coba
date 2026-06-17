@@ -99,8 +99,9 @@ class DeliveryRequestController extends Controller
             'scheduled_at' => $request->scheduled_at,
         ]);
 
-        return redirect()->route('portal.dashboard')
-            ->with('success', "Permintaan jemput berhasil diajukan! Jarak tercatat: {$distance} KM. Biaya Jemput: Rp " . number_format($fee, 0, ',', '.'));
+        return redirect()
+            ->route('portal.active')
+            ->with('success', "Permintaan jemput berhasil dikirim! Jarak tercatat: {$distance} KM (Biaya: Rp " . number_format($fee, 0, ',', '.') . "). Silakan siapkan cucian Anda, kurir kami akan segera datang.");
     }
 
     public function updateStatus(Request $request, DeliveryRequest $deliveryRequest)

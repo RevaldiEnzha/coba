@@ -18,9 +18,15 @@
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">
-            <label style="font-weight: 600; font-size: 13px; color: #334155;">Username (Untuk Login)</label>
+            <label style="font-weight: 600; font-size: 13px; color: #334155;">Username</label>
             <input type="text" name="username" value="{{ old('username', $customer->user->username) }}" required style="width: 100%; height: 42px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 14px;">
             @error('username') <small style="color: #dc2626;">{{ $message }}</small> @enderror
+        </div>
+
+        <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-weight: 600; font-size: 13px; color: #334155;">Email Utama</label>
+            <input type="email" name="email" value="{{ old('email', $customer->user->email) }}" required style="width: 100%; height: 42px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 14px;">
+            @error('email') <small style="color: #dc2626;">{{ $message }}</small> @enderror
         </div>
 
         <div class="form-group" style="margin-bottom: 16px;">

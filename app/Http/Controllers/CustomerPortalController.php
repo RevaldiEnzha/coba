@@ -64,14 +64,23 @@ class CustomerPortalController extends Controller
 
     public function active()
     {
-        $customer = Auth::user()->customer;
-        $activeOrders = LaundryOrder::with(['service', 'invoice'])
-            ->where('customer_id', $customer->id)
+        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+
+        // 1. Ambil transaksi laundry yang sedang berjalan (seperti biasa)
+        $activeOrders = \App\Models\LaundryOrder::where('customer_id', $customer->id)
             ->whereNotIn('status', ['selesai', 'dibatalkan'])
             ->latest()
             ->get();
 
-        return view('portal.active', compact('activeOrders'));
+        // 2. TAMBAHAN: Ambil permintaan jemput yang BELUM jadi transaksi resmi
+        $pendingPickups = \App\Models\DeliveryRequest::where('customer_id', $customer->id)
+            ->where('type', 'jemput')
+            ->whereNull('laundry_order_id') // Artinya belum dikonfirmasi/ditimbang kasir
+            ->whereNotIn('status', ['selesai', 'dibatalkan'])
+            ->latest()
+            ->get();
+
+        return view('portal.active', compact('activeOrders', 'pendingPickups'));
     }
 
     public function history()
@@ -108,31 +117,41 @@ class CustomerPortalController extends Controller
 
     public function updateAccount(Request $request)
     {
-        $user = Auth::user();
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $customer = $user->customer;
 
-        // Validasi input form
         $request->validate([
-            'password_sekarang' => 'required',
-            'password_baru' => 'nullable|min:8|confirmed',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone'    => 'required|string|max:20|unique:customers,phone,' . $customer->id,
+            'address'  => 'required|string',
+            'password_sekarang' => 'nullable|required_with:password_baru',
+            'password_baru'     => 'nullable|min:8|confirmed',
         ], [
-            'password_sekarang.required' => 'Password saat ini wajib diisi untuk verifikasi keamanan.',
-            'password_baru.min' => 'Password baru minimal harus terdiri dari 8 karakter.',
-            'password_baru.confirmed' => 'Konfirmasi password baru tidak cocok.',
+            'email.unique' => 'Email ini sudah dipakai.',
+            'phone.unique' => 'Nomor WhatsApp ini sudah dipakai.',
         ]);
 
-        // Verifikasi apakah password lama yang dimasukkan sudah benar
-        if (!Hash::check($request->password_sekarang, $user->password)) {
-            return back()->withErrors(['password_sekarang' => 'Password saat ini yang Anda masukkan salah.']);
+        // Cek Keamanan jika ingin ganti password
+        if ($request->filled('password_sekarang')) {
+            if (!\Illuminate\Support\Facades\Hash::check($request->password_sekarang, $user->password)) {
+                return back()->withErrors(['password_sekarang' => 'Password saat ini salah.']);
+            }
+            $user->password = \Illuminate\Support\Facades\Hash::make($request->password_baru);
         }
 
-        // Jika user mengisi field password baru, lakukan pembaruan data
-        if ($request->filled('password_baru')) {
-            $user->password = Hash::make($request->password_baru);
-            $user->save();
-            return back()->with('success', 'Password akun Anda berhasil diperbarui!');
-        }
+        // Update tabel users
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->save();
 
-        return back()->with('info', 'Tidak ada perubahan data password dilakukan.');
+        // Update tabel customers
+        $customer->update([
+            'phone'   => $request->phone,
+            'address' => $request->address,
+        ]);
+
+        return back()->with('success', 'Informasi akun berhasil diperbarui!');
     }
 
     public function createPickup()
@@ -333,5 +352,26 @@ class CustomerPortalController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Profil Anda berhasil diperbarui!');
+    }
+
+    public function cancelPickup(\App\Models\DeliveryRequest $deliveryRequest)
+    {
+        // 1. Keamanan: Pastikan data jemput ini benar-benar milik pelanggan yang sedang login
+        $customer = \Illuminate\Support\Facades\Auth::user()->customer;
+        if ($deliveryRequest->customer_id !== $customer->id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // 2. Keamanan UX: Pastikan statusnya masih "menunggu_konfirmasi"
+        if ($deliveryRequest->status !== 'menunggu_konfirmasi') {
+            return back()->with('error', 'Gagal membatalkan! Kurir sudah diproses atau sedang dalam perjalanan ke lokasi Anda.');
+        }
+
+        // 3. Batalkan pesanan
+        $deliveryRequest->update([
+            'status' => 'dibatalkan',
+        ]);
+
+        return back()->with('success', 'Permintaan penjemputan cucian berhasil dibatalkan.');
     }
 }

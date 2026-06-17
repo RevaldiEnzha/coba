@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class CustomerController extends Controller
 {
     public function index(Request $request)
-{
+    {
         $search = $request->search;
 
         $customers = Customer::with('user')
@@ -42,75 +42,71 @@ class CustomerController extends Controller
 
         return view('customers.index', compact('customers', 'search'));
     }
-    public function create()
-    {
-         return redirect()->route('customers.index');
-    }
-
-    public function edit(Customer $customer)
-    {
-        // PERBAIKAN: Tampilkan halaman edit, jangan di-redirect!
-        return view('customers.edit', compact('customer'));
-    }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'phone' => ['required', 'string', 'max:20', 'unique:customers,phone'],
-        'address' => ['required', 'string'],
-        '_mode' => ['nullable', 'string'],
+            'name'     => ['required', 'string', 'max:255'],
+            'phone'    => ['required', 'string', 'max:20', 'unique:customers,phone'],
+            'address'  => ['required', 'string'],
+            // Kita buat opsional agar tidak error jika tidak diisi dari modal
+            'username' => ['nullable', 'string', 'max:255', 'unique:users,username'],
+            'email'    => ['nullable', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['nullable', 'string', 'min:8'],
         ]);
 
         DB::transaction(function () use ($validated) {
-            $username = $this->generateUniqueUsername($validated['name']);
-            $email = $this->generateUniqueEmail($username);
+            // Jika username/email diisi manual, gunakan itu. Jika kosong, generate otomatis.
+            $username = !empty($validated['username']) ? $validated['username'] : $this->generateUniqueUsername($validated['name']);
+            $email = !empty($validated['email']) ? $validated['email'] : $this->generateUniqueEmail($username);
+            $password = !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('pelanggan123');
 
             $user = User::create([
-                'name' => $validated['name'],
+                'name'     => $validated['name'],
                 'username' => $username,
-                'email' => $email,
-                'password' => Hash::make('pelanggan123'),
-                'role' => 'pelanggan',
+                'email'    => $email,
+                'password' => $password,
+                'role'     => 'pelanggan',
             ]);
 
             Customer::create([
-                'user_id' => $user->id,
-                'phone' => $validated['phone'],
-                'address' => $validated['address'],
+                'user_id'        => $user->id,
+                'phone'          => $validated['phone'],
+                'address'        => $validated['address'],
                 'points_balance' => 0,
             ]);
         });
 
         return redirect()
             ->route('customers.index')
-            ->with('success', 'Pelanggan berhasil ditambahkan.');
+            ->with('success', 'Pelanggan baru berhasil ditambahkan.');
     }
-
-
 
     public function update(Request $request, Customer $customer)
     {
         $request->validate([
             'name'     => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,' . $customer->user_id,
             'phone'    => 'required|string|max:20|unique:customers,phone,' . $customer->id,
             'address'  => 'required|string',
+            // Pastikan modal nanti mengirimkan data username & email
+            'username' => 'required|string|max:255|unique:users,username,' . $customer->user_id,
+            'email'    => 'required|email|max:255|unique:users,email,' . $customer->user_id,
             'password' => 'nullable|min:8',
         ], [
             'username.unique' => 'Username ini sudah dipakai oleh pengguna lain.',
-            'phone.unique'    => 'Nomor WhatsApp ini sudah terdaftar di sistem.',
+            'email.unique'    => 'Email ini sudah dipakai.',
+            'phone.unique'    => 'Nomor WhatsApp ini sudah terdaftar.',
         ]);
 
-        // Simpan ke tabel users
         $customer->user->name = $request->name;
         $customer->user->username = $request->username;
+        $customer->user->email = $request->email;
+        
         if ($request->filled('password')) {
-            $customer->user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+            $customer->user->password = Hash::make($request->password);
         }
         $customer->user->save();
 
-        // Simpan ke tabel customers
         $customer->update([
             'phone'   => $request->phone,
             'address' => $request->address,
@@ -119,5 +115,45 @@ class CustomerController extends Controller
         return redirect()
             ->route('customers.index')
             ->with('success', 'Data pelanggan berhasil diperbarui!');
+    }
+
+    public function destroy(Customer $customer)
+    {
+        DB::transaction(function () use ($customer) {
+            $user = $customer->user;
+            $customer->delete();
+            if ($user) {
+                $user->delete();
+            }
+        });
+
+        return redirect()
+            ->route('customers.index')
+            ->with('success', 'Pelanggan berhasil dihapus.');
+    }
+
+    // --- FUNGSI GENERATE KEMBALI --- //
+    private function generateUniqueEmail(string $username): string
+    {
+        $email = $username . '@customer.local';
+        $counter = 1;
+        while (User::where('email', $email)->exists()) {
+            $email = $username . $counter . '@customer.local';
+            $counter++;
+        }
+        return $email;
+    }
+
+    private function generateUniqueUsername(string $name): string
+    {
+        $base = Str::lower(Str::slug($name, ''));
+        $base = $base !== '' ? $base : 'pelanggan';
+        $username = $base;
+        $counter = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $base . $counter;
+            $counter++;
+        }
+        return $username;
     }
 }

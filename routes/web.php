@@ -68,4 +68,5 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::post('/portal/orders/{order}/request-delivery', [CustomerPortalController::class, 'requestDelivery'])
          ->name('portal.orders.request_delivery');
     Route::delete('/portal/orders/{order}/cancel-delivery', [CustomerPortalController::class, 'cancelDelivery'])->name('portal.orders.cancel_delivery');
+    Route::delete('/portal/pickups/{deliveryRequest}/cancel', [CustomerPortalController::class, 'cancelPickup'])->name('portal.pickups.cancel');
 });
