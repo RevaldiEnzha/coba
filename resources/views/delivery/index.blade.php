@@ -7,11 +7,13 @@
 </section>
 
 @if(session('success'))
-    <div class="alert-success">{{ session('success') }}</div>
+    <div class="alert-success" style="margin-bottom: 20px; padding: 14px; border-radius: 10px; background: #dcfce7; color: #166534;">
+        {{ session('success') }}
+    </div>
 @endif
 
 @if($errors->any())
-    <div class="alert-error">
+    <div class="alert-error" style="margin-bottom: 20px; padding: 14px; border-radius: 10px; background: #fee2e2; color: #991b1b;">
         {{ $errors->first() }}
     </div>
 @endif
@@ -59,24 +61,32 @@
                     <td>{{ $request->note ?? '-' }}</td>
                     <td>{{ $request->scheduled_at ? \Carbon\Carbon::parse($request->scheduled_at)->format('d M Y H:i') : '-' }}</td>
                     <td><span class="delivery-status {{ $statusClass }}">{{ $statusLabel }}</span></td>
+                    
                     <td>
                         @if($request->laundry_order_id)
-                            <a href="{{ route('orders.show', $request->laundry_order_id) }}" class="delivery-order-link">Lihat Transaksi</a>
-                        @elseif($request->status === 'menunggu_konfirmasi')
-                            <form method="POST" action="{{ route('delivery.confirm', $request) }}" class="delivery-confirm-form">
+                            <a href="{{ route('orders.show', $request->laundry_order_id) }}" class="delivery-order-link" style="color: #10b981; font-weight: bold; text-decoration: none;">
+                                ✓ Transaksi Dibuat
+                            </a>
+                        @elseif($request->status === 'selesai')
+                            <form method="POST" action="{{ route('delivery.confirm', $request) }}" class="delivery-confirm-form" style="display: flex; gap: 6px; flex-direction: column;">
                                 @csrf
-                                <input type="number" step="0.1" min="0.1" name="amount" placeholder="{{ ($request->service->type ?? 'kiloan') === 'kiloan' ? 'Berat kg' : 'Jumlah item' }}" required>
-                                <button type="submit">Buat Transaksi</button>
+                                <input type="number" step="0.1" min="0.1" name="amount" placeholder="{{ ($request->service->type ?? 'kiloan') === 'kiloan' ? 'Berat (kg)' : 'Jumlah (item)' }}" required style="width: 110px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                                <button type="submit" style="background: #0ea5e9; color: white; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                    Buat Transaksi
+                                </button>
                             </form>
+                        @elseif($request->status === 'dibatalkan')
+                            <span style="color: #ef4444; font-size: 13px; font-weight: 600;">Dibatalkan</span>
                         @else
-                            -
+                            <span style="color: #f59e0b; font-size: 12px; font-weight: 600;">⏳ Menunggu Cucian Tiba</span>
                         @endif
                     </td>
+
                     <td>
                         <form method="POST" action="{{ route('delivery.update', $request) }}">
                             @csrf
                             @method('PATCH')
-                            <select name="status" class="delivery-status-select" onchange="this.form.submit()">
+                            <select name="status" class="delivery-status-select" onchange="this.form.submit()" style="padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 13px;">
                                 <option value="menunggu_konfirmasi" {{ $request->status === 'menunggu_konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
                                 <option value="diproses" {{ $request->status === 'diproses' ? 'selected' : '' }}>Diproses (Kurir Jalan)</option>
                                 <option value="selesai" {{ $request->status === 'selesai' ? 'selected' : '' }}>Selesai Dijemput</option>
@@ -86,7 +96,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="empty-row">Belum ada permintaan jemput.</td></tr>
+                <tr><td colspan="9" class="empty-row" style="text-align: center; padding: 20px;">Belum ada permintaan jemput.</td></tr>
             @endforelse
         </tbody>
     </table>
@@ -98,12 +108,12 @@
         <thead>
             <tr>
                 <th>ID Antar</th>
-                <th>Order Terkait</th>
+                <th>No. Order</th>
                 <th>Pelanggan</th>
                 <th>Alamat Tujuan</th>
                 <th>Jarak & Biaya</th>
                 <th>Status</th>
-                <th>Aksi / Update Status</th>
+                <th>Update Status</th>
             </tr>
         </thead>
         <tbody>
@@ -147,7 +157,7 @@
                         <form method="POST" action="{{ route('delivery.update', $delivery) }}">
                             @csrf
                             @method('PATCH')
-                            <select name="status" class="delivery-status-select" onchange="this.form.submit()">
+                            <select name="status" class="delivery-status-select" onchange="this.form.submit()" style="padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-size: 13px;">
                                 <option value="menunggu_konfirmasi" {{ $delivery->status === 'menunggu_konfirmasi' ? 'selected' : '' }}>Menunggu Konfirmasi</option>
                                 <option value="diproses" {{ $delivery->status === 'diproses' ? 'selected' : '' }}>Diproses (Kurir Jalan)</option>
                                 <option value="selesai" {{ $delivery->status === 'selesai' ? 'selected' : '' }}>Selesai Diantar</option>
@@ -157,7 +167,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="empty-row">Belum ada permintaan antar.</td></tr>
+                <tr><td colspan="7" class="empty-row" style="text-align: center; padding: 20px;">Belum ada permintaan antar.</td></tr>
             @endforelse
         </tbody>
     </table>

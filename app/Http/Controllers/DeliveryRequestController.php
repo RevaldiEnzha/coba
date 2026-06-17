@@ -31,7 +31,77 @@ class DeliveryRequestController extends Controller
         return view('delivery.index', compact('pickups', 'deliveries'));
     }
 
-    // ... (biarkan fungsi store yang ada di bawahnya) ...
+    // ... fungsi index() yang sudah ada ...
+
+    public function store(Request $request)
+    {
+        // 1. Validasi Input form dan Peta
+        $request->validate([
+            'service_id' => 'required|exists:services,id',
+            'latitude' => 'required',
+            'longitude' => 'required',
+            'address_main' => 'required',
+            'address_detail' => 'required',
+            'scheduled_at' => 'nullable|date',
+        ], [
+            'service_id.required' => 'Silakan pilih jenis layanan terlebih dahulu.',
+            'latitude.required' => 'Silakan tentukan titik lokasi pada peta.',
+            'address_detail.required' => 'Detail patokan alamat wajib diisi.',
+        ]);
+
+        $customer = Auth::user()->customer;
+        if (!$customer) {
+            abort(403, 'Data pelanggan tidak ditemukan.');
+        }
+
+        // 2. Rumus Haversine: Menghitung Jarak Jemput (KM)
+        $outletLat = -7.428940;
+        $outletLng = 109.337930; 
+
+        $earthRadius = 6371; 
+        $latFrom = deg2rad((float) $outletLat);
+        $lonFrom = deg2rad((float) $outletLng);
+        $latTo = deg2rad((float) $request->latitude);
+        $lonTo = deg2rad((float) $request->longitude);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+             cos($latFrom) * cos($latTo) *
+             sin($lonDelta / 2) * sin($lonDelta / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        
+        $distance = round($earthRadius * $c, 2);
+
+        // 3. Logika Biaya Jemput
+        // Contoh: Gratis 2 KM pertama, selebihnya Rp 3.000 / KM
+        $fee = 0;
+        if ($distance > 2) {
+            $kelebihanKm = ceil($distance - 2); 
+            $fee = $kelebihanKm * 3000;
+        }
+
+        // 4. Gabungkan Alamat
+        $fullAddress = $request->address_main . ' (Detail: ' . $request->address_detail . ')';
+
+        // 5. Simpan ke database
+        DeliveryRequest::create([
+            'customer_id' => $customer->id,
+            'laundry_order_id' => null, // Dikosongkan karena order resminya belum dibuat kasir
+            'service_id' => $request->service_id,
+            'type' => 'jemput',
+            'address' => $fullAddress,
+            'distance_km' => $distance,
+            'fee' => $fee,
+            'status' => 'menunggu_konfirmasi',
+            'note' => $request->note,
+            'scheduled_at' => $request->scheduled_at,
+        ]);
+
+        return redirect()->route('portal.dashboard')
+            ->with('success', "Permintaan jemput berhasil diajukan! Jarak tercatat: {$distance} KM. Biaya Jemput: Rp " . number_format($fee, 0, ',', '.'));
+    }
 
     public function updateStatus(Request $request, DeliveryRequest $deliveryRequest)
     {
@@ -60,12 +130,17 @@ class DeliveryRequestController extends Controller
                 ->with('success', 'Permintaan jemput ini sudah dibuatkan transaksi.');
         }
 
+        if ($deliveryRequest->status !== 'selesai') {
+            return back()->withErrors([
+                'amount' => 'Transaksi gagal dibuat. Status penjemputan harus "Selesai Dijemput" terlebih dahulu agar cucian bisa ditimbang dengan akurat.'
+            ]);
+        }
+
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.1'],
         ]);
 
         $deliveryRequest->load(['customer', 'service']);
-
         $service = $deliveryRequest->service;
 
         if (!$service) {

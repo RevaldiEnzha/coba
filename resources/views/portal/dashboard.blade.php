@@ -36,7 +36,7 @@
 
     <div class="portal-profile-row">
         <span>Nomor Telepon</span>
-        strong>{{ $customer->phone ?? '-' }}</strong>
+        <strong>{{ $customer->phone ?? '-' }}</strong>
     </div>
 
     <div class="portal-profile-row">
