@@ -50,7 +50,7 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    
+
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
@@ -73,4 +73,7 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
          ->name('portal.orders.request_delivery');
     Route::delete('/portal/orders/{order}/cancel-delivery', [CustomerPortalController::class, 'cancelDelivery'])->name('portal.orders.cancel_delivery');
     Route::delete('/portal/pickups/{deliveryRequest}/cancel', [CustomerPortalController::class, 'cancelPickup'])->name('portal.pickups.cancel');
+
+    Route::post('/portal/orders/{order}/delivery', [DeliveryRequestController::class, 'requestDelivery'])
+    ->name('portal.delivery.request');
 });

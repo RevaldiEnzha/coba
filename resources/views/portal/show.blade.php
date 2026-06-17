@@ -112,7 +112,7 @@
 @php
     $isDeliveryAvailable = now()->timezone('Asia/Jakarta')->format('H:i') < '18:00';
     $canRequest = !in_array($order->status, ['selesai', 'dibatalkan']);
-    
+
     // Cek apakah user sudah memiliki permintaan pengantaran aktif (yang belum dibatalkan)
     $activeDelivery = \App\Models\DeliveryRequest::where('laundry_order_id', $order->id)
         ->where('type', 'antar')
@@ -129,13 +129,13 @@
                     <p style="margin: 0; color: #64748b; font-size: 14px;"><strong>Alamat:</strong> {{ $activeDelivery->address }}</p>
                     <p style="margin: 4px 0 0 0; color: #64748b; font-size: 14px;"><strong>Jarak:</strong> {{ $activeDelivery->distance_km }} KM | <strong>Biaya:</strong> Rp {{ number_format($activeDelivery->fee, 0, ',', '.') }}</p>
                 </div>
-                
+
                 @if($activeDelivery->status === 'menunggu_konfirmasi')
                     <div style="text-align: right;">
                         <span style="display: inline-block; padding: 6px 12px; background: #fef3c7; color: #b45309; border-radius: 6px; font-size: 13px; font-weight: 700; margin-bottom: 12px;">
                             Menunggu Konfirmasi Kasir
                         </span>
-                        
+
                         <form action="{{ route('portal.orders.cancel_delivery', $order->id) }}" method="POST" style="margin: 0;">
                             @csrf
                             @method('DELETE')
@@ -162,7 +162,7 @@
             <div style="margin-bottom: 20px;">
                 <h3 style="margin: 0 0 8px; font-size: 20px; font-weight: 800;">Opsi Pengiriman Cucian</h3>
                 <p style="margin: 0; color: #64748b;">Geser pin pada peta untuk menentukan lokasi, jarak, dan biaya antar.</p>
-                
+
                 @if(!$isDeliveryAvailable)
                     <p style="color: #dc2626; font-size: 13px; font-weight: 600; margin-top: 8px;">
                         *Layanan kurir tutup. Permintaan antar hanya dilayani hingga pukul 18:00 WIB.
@@ -173,14 +173,24 @@
             @if($isDeliveryAvailable)
                 <form id="delivery-form" method="POST" action="{{ route('portal.orders.request_delivery', $order->id) }}" style="display: flex; flex-direction: column; gap: 16px; margin: 0;">
                     @csrf
-                    
+
                     <div style="display: flex; gap: 8px;">
                         <input type="text" id="search-map-input" placeholder="Cari nama jalan, desa, atau kota..." style="flex: 1; height: 42px; border: 1px solid #d5dde8; border-radius: 8px; padding: 0 12px; font-size: 13px; outline: none;">
                         <button type="button" id="search-map-btn" style="background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 18px; font-weight: 700; cursor: pointer; font-size: 13px;">Cari Lokasi</button>
                     </div>
 
                     <div id="map" style="height: 250px; width: 100%; border-radius: 10px; z-index: 1; border: 1px solid #cbd5e1;"></div>
-                    
+                    <div id="delivery-preview" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                        <div>
+                            <p style="margin: 0 0 4px; color: #64748b; font-size: 12px; font-weight: 700;">Estimasi Jarak</p>
+                            <strong id="delivery-distance-preview" style="font-size: 16px; color: #0f172a;">0 KM</strong>
+                        </div>
+
+                        <div>
+                            <p style="margin: 0 0 4px; color: #64748b; font-size: 12px; font-weight: 700;">Estimasi Biaya Antar</p>
+                            <strong id="delivery-fee-preview" style="font-size: 16px; color: #0284c7;">Rp 0</strong>
+                        </div>
+                    </div>
                     <input type="hidden" name="latitude" id="latitude">
                     <input type="hidden" name="longitude" id="longitude">
 
@@ -210,7 +220,10 @@
         <script>
         document.addEventListener('DOMContentLoaded', function() {
             var outletLat = -7.428940;
-            var outletLng =  109.337930; 
+            var outletLng = 109.337930;
+
+            const freeDistance = Number(@json($freeDeliveryDistance ?? 3));
+            const feePerKm = Number(@json($deliveryFeePerKm ?? 2000));
 
             var map = L.map('map').setView([outletLat, outletLng], 14);
 
@@ -218,17 +231,73 @@
                 attribution: '© OpenStreetMap'
             }).addTo(map);
 
-            var marker = L.marker([outletLat, outletLng], {draggable: true}).addTo(map);
+            var marker = L.marker([outletLat, outletLng], { draggable: true }).addTo(map);
+
+            function calculateDistance(fromLat, fromLng, toLat, toLng) {
+                const earthRadius = 6371;
+
+                const latFrom = degToRad(fromLat);
+                const lngFrom = degToRad(fromLng);
+                const latTo = degToRad(toLat);
+                const lngTo = degToRad(toLng);
+
+                const latDelta = latTo - latFrom;
+                const lngDelta = lngTo - lngFrom;
+
+                const a = Math.sin(latDelta / 2) * Math.sin(latDelta / 2)
+                    + Math.cos(latFrom) * Math.cos(latTo)
+                    * Math.sin(lngDelta / 2) * Math.sin(lngDelta / 2);
+
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                return earthRadius * c;
+            }
+
+            function degToRad(value) {
+                return value * Math.PI / 180;
+            }
+
+            function calculateDeliveryFee(distanceKm) {
+                if (distanceKm <= freeDistance) {
+                    return 0;
+                }
+
+                const chargedDistance = Math.ceil(distanceKm - freeDistance);
+                return chargedDistance * feePerKm;
+            }
+
+            function formatRupiah(value) {
+                return new Intl.NumberFormat('id-ID').format(value);
+            }
+
+            function updateDeliveryPreview(lat, lng) {
+                const distance = calculateDistance(outletLat, outletLng, Number(lat), Number(lng));
+                const roundedDistance = Number(distance.toFixed(2));
+                const fee = calculateDeliveryFee(roundedDistance);
+
+                const distancePreview = document.getElementById('delivery-distance-preview');
+                const feePreview = document.getElementById('delivery-fee-preview');
+
+                if (distancePreview) {
+                    distancePreview.textContent = roundedDistance + ' KM';
+                }
+
+                if (feePreview) {
+                    feePreview.textContent = 'Rp ' + formatRupiah(fee);
+                }
+            }
 
             function updateLocation(lat, lng) {
                 document.getElementById('latitude').value = lat;
                 document.getElementById('longitude').value = lng;
                 document.getElementById('address_main').value = 'Sedang mencari alamat otomatis...';
 
+                updateDeliveryPreview(lat, lng);
+
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
                     .then(response => response.json())
                     .then(data => {
-                        if(data && data.display_name) {
+                        if (data && data.display_name) {
                             document.getElementById('address_main').value = data.display_name;
                         } else {
                             document.getElementById('address_main').value = "Alamat spesifik tidak ditemukan. Silakan tambahkan detail di kolom bawah.";
@@ -241,7 +310,7 @@
 
             updateLocation(outletLat, outletLng);
 
-            marker.on('dragend', function (e) {
+            marker.on('dragend', function () {
                 var position = marker.getLatLng();
                 updateLocation(position.lat, position.lng);
             });
@@ -251,15 +320,19 @@
 
             searchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); 
+                    e.preventDefault();
                     searchBtn.click();
                 }
             });
 
             searchBtn.addEventListener('click', function(e) {
                 e.preventDefault();
+
                 var query = searchInput.value;
-                if (!query) return;
+
+                if (!query) {
+                    return;
+                }
 
                 searchBtn.innerText = 'Mencari...';
 
@@ -267,10 +340,11 @@
                     .then(res => res.json())
                     .then(data => {
                         searchBtn.innerText = 'Cari Lokasi';
+
                         if (data && data.length > 0) {
                             var lat = data[0].lat;
                             var lon = data[0].lon;
-                            
+
                             map.setView([lat, lon], 16);
                             marker.setLatLng([lat, lon]);
                             updateLocation(lat, lon);

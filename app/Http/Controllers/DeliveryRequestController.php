@@ -6,6 +6,7 @@ use App\Models\DeliveryRequest;
 use App\Models\Invoice;
 use App\Models\LaundryOrder;
 use App\Models\OrderStatusHistory;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,121 +16,111 @@ class DeliveryRequestController extends Controller
     public function index(Request $request)
     {
         $search = $request->search;
-        // Bersihkan teks (Misal: "JMP-005" menjadi "5" agar bisa dicari di database)
-        $cleanSearch = preg_replace('/[^0-9]/', '', $search);
+        $cleanSearch = preg_replace('/[^0-9]/', '', $search ?? '');
 
-        // 1. Query untuk tabel JEMPUT (Batas 5 per halaman)
         $pickups = DeliveryRequest::with(['customer.user', 'service', 'laundryOrder'])
             ->where('type', 'jemput')
             ->when($search, function ($query) use ($search, $cleanSearch) {
-                $query->where(function($q) use ($search, $cleanSearch) {
+                $query->where(function ($q) use ($search, $cleanSearch) {
                     $q->where('address', 'like', "%{$search}%")
-                      ->orWhereHas('customer.user', function($u) use ($search) {
-                          $u->where('name', 'like', "%{$search}%");
-                      });
+                        ->orWhereHas('customer.user', function ($u) use ($search) {
+                            $u->where('name', 'like', "%{$search}%");
+                        });
+
                     if ($cleanSearch !== '') {
                         $q->orWhere('id', (int) $cleanSearch);
                     }
                 });
             })
             ->latest()
-            // Menggunakan nama page khusus 'pickup_page' agar tidak bentrok
             ->paginate(5, ['*'], 'pickup_page')
-            ->appends(request()->query());
+            ->appends($request->query());
 
-        // 2. Query untuk tabel ANTAR (Batas 5 per halaman)
-        $deliveries = DeliveryRequest::with(['customer.user', 'laundryOrder'])
+        $deliveries = DeliveryRequest::with(['customer.user', 'service', 'laundryOrder'])
             ->where('type', 'antar')
             ->when($search, function ($query) use ($search, $cleanSearch) {
-                $query->where(function($q) use ($search, $cleanSearch) {
+                $query->where(function ($q) use ($search, $cleanSearch) {
                     $q->where('address', 'like', "%{$search}%")
-                      ->orWhereHas('customer.user', function($u) use ($search) {
-                          $u->where('name', 'like', "%{$search}%");
-                      });
+                        ->orWhereHas('customer.user', function ($u) use ($search) {
+                            $u->where('name', 'like', "%{$search}%");
+                        });
+
                     if ($cleanSearch !== '') {
                         $q->orWhere('id', (int) $cleanSearch);
                     }
                 });
             })
             ->latest()
-            // Menggunakan nama page khusus 'delivery_page' agar tidak bentrok
             ->paginate(5, ['*'], 'delivery_page')
-            ->appends(request()->query());
+            ->appends($request->query());
 
         return view('delivery.index', compact('pickups', 'deliveries', 'search'));
     }
 
-    // ... fungsi index() yang sudah ada ...
-
     public function store(Request $request)
     {
-        // 1. Validasi Input form dan Peta
-        $request->validate([
-            'service_id' => 'required|exists:services,id',
-            'latitude' => 'required',
-            'longitude' => 'required',
-            'address_main' => 'required',
-            'address_detail' => 'required',
-            'scheduled_at' => 'nullable|date',
+        $validated = $request->validate([
+            'service_id' => ['required', 'exists:services,id'],
+            'latitude' => ['required'],
+            'longitude' => ['required'],
+            'address_main' => ['required', 'string'],
+            'address_detail' => ['required', 'string'],
+            'note' => ['nullable', 'string', 'max:500'],
+            'scheduled_at' => ['nullable', 'date'],
         ], [
             'service_id.required' => 'Silakan pilih jenis layanan terlebih dahulu.',
             'latitude.required' => 'Silakan tentukan titik lokasi pada peta.',
+            'longitude.required' => 'Silakan tentukan titik lokasi pada peta.',
+            'address_main.required' => 'Alamat utama wajib diisi.',
             'address_detail.required' => 'Detail patokan alamat wajib diisi.',
         ]);
 
         $customer = Auth::user()->customer;
+
         if (!$customer) {
             abort(403, 'Data pelanggan tidak ditemukan.');
         }
 
-        // 2. Rumus Haversine: Menghitung Jarak Jemput (KM)
         $outletLat = -7.428940;
         $outletLng = 109.337930;
 
-        $earthRadius = 6371;
-        $latFrom = deg2rad((float) $outletLat);
-        $lonFrom = deg2rad((float) $outletLng);
-        $latTo = deg2rad((float) $request->latitude);
-        $lonTo = deg2rad((float) $request->longitude);
+        $distance = $this->calculateDistance(
+            $outletLat,
+            $outletLng,
+            (float) $validated['latitude'],
+            (float) $validated['longitude']
+        );
 
-        $latDelta = $latTo - $latFrom;
-        $lonDelta = $lonTo - $lonFrom;
+        $pickupFee = $this->calculatePickupFee($distance);
 
-        $a = sin($latDelta / 2) * sin($latDelta / 2) +
-             cos($latFrom) * cos($latTo) *
-             sin($lonDelta / 2) * sin($lonDelta / 2);
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $fullAddress = $validated['address_main']
+            . ' (Detail: '
+            . $validated['address_detail']
+            . ')';
 
-        $distance = round($earthRadius * $c, 2);
-
-        // 3. Logika Biaya Jemput
-        // Contoh: Gratis 2 KM pertama, selebihnya Rp 3.000 / KM
-        $fee = 0;
-        if ($distance > 2) {
-            $kelebihanKm = ceil($distance - 2);
-            $fee = $kelebihanKm * 3000;
-        }
-
-        // 4. Gabungkan Alamat
-        $fullAddress = $request->address_main . ' (Detail: ' . $request->address_detail . ')';
-
-        // 5. Simpan ke database
         DeliveryRequest::create([
             'customer_id' => $customer->id,
-            'laundry_order_id' => null, // Dikosongkan karena order resminya belum dibuat kasir
-            'service_id' => $request->service_id,
+            'laundry_order_id' => null,
+            'service_id' => $validated['service_id'],
             'type' => 'jemput',
             'address' => $fullAddress,
             'distance_km' => $distance,
-            'fee' => $fee,
+            'fee' => $pickupFee,
             'status' => 'menunggu_konfirmasi',
-            'note' => $request->note,
-            'scheduled_at' => $request->scheduled_at,
+            'note' => $validated['note'] ?? null,
+            'scheduled_at' => $validated['scheduled_at'] ?? null,
         ]);
 
         return redirect()
             ->route('portal.active')
-            ->with('success', "Permintaan jemput berhasil dikirim! Jarak tercatat: {$distance} KM (Biaya: Rp " . number_format($fee, 0, ',', '.') . "). Silakan siapkan cucian Anda, kurir kami akan segera datang.");
+            ->with(
+                'success',
+                'Permintaan jemput berhasil dikirim! Jarak tercatat: '
+                . $distance
+                . ' KM (Biaya: Rp '
+                . number_format($pickupFee, 0, ',', '.')
+                . '). Silakan siapkan cucian Anda, kurir kami akan segera datang.'
+            );
     }
 
     public function updateStatus(Request $request, DeliveryRequest $deliveryRequest)
@@ -145,14 +136,21 @@ class DeliveryRequestController extends Controller
             'status' => $validated['status'],
         ]);
 
-        // Mengubah pesannya menjadi lebih umum (karena bisa jemput atau antar)
         return redirect()
             ->route('delivery.index')
-            ->with('success', 'Status permintaan (jemput/antar) berhasil diperbarui.');
+            ->with('success', 'Status permintaan jemput/antar berhasil diperbarui.');
     }
 
     public function confirm(Request $request, DeliveryRequest $deliveryRequest)
     {
+        if ($deliveryRequest->type !== 'jemput') {
+            return redirect()
+                ->route('delivery.index')
+                ->withErrors([
+                    'type' => 'Hanya permintaan jemput yang dapat dibuat menjadi transaksi.',
+                ]);
+        }
+
         if ($deliveryRequest->laundry_order_id) {
             return redirect()
                 ->route('delivery.index')
@@ -204,7 +202,7 @@ class DeliveryRequestController extends Controller
             $total
         ) {
             $order = LaundryOrder::create([
-                'order_code' => 'ORD-' . now()->format('YmdHis'),
+                'order_code' => 'ORD-' . now()->format('YmdHis') . '-' . $deliveryRequest->id,
                 'customer_id' => $deliveryRequest->customer_id,
                 'service_id' => $service->id,
                 'cashier_id' => Auth::id(),
@@ -222,7 +220,7 @@ class DeliveryRequestController extends Controller
 
             Invoice::create([
                 'laundry_order_id' => $order->id,
-                'invoice_code' => 'INV-' . now()->format('YmdHis'),
+                'invoice_code' => 'INV-' . now()->format('YmdHis') . '-' . $deliveryRequest->id,
                 'subtotal' => $subtotal,
                 'delivery_fee' => $deliveryFee,
                 'point_discount' => $discount,
@@ -247,5 +245,181 @@ class DeliveryRequestController extends Controller
         return redirect()
             ->route('delivery.index')
             ->with('success', 'Permintaan jemput berhasil dibuat menjadi transaksi resmi.');
+    }
+
+    public function requestDelivery(Request $request, LaundryOrder $order)
+    {
+        $validated = $request->validate([
+            'latitude' => ['required'],
+            'longitude' => ['required'],
+            'address_main' => ['required', 'string'],
+            'address_detail' => ['required', 'string'],
+            'note' => ['nullable', 'string', 'max:500'],
+        ], [
+            'latitude.required' => 'Silakan tentukan titik lokasi pengantaran pada peta.',
+            'longitude.required' => 'Silakan tentukan titik lokasi pengantaran pada peta.',
+            'address_main.required' => 'Alamat utama wajib diisi.',
+            'address_detail.required' => 'Detail patokan alamat wajib diisi.',
+        ]);
+
+        $customer = Auth::user()->customer;
+
+        if (!$customer || $order->customer_id !== $customer->id) {
+            abort(403, 'Anda tidak memiliki akses ke order ini.');
+        }
+
+        if ($order->status !== 'siap_diambil') {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'status' => 'Layanan antar hanya tersedia ketika cucian sudah siap diambil.',
+                ]);
+        }
+
+        if (now()->hour >= 18) {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'time' => 'Layanan pengantaran sudah tidak tersedia setelah pukul 18.00 WIB.',
+                ]);
+        }
+
+        if ($order->delivery_option === 'diantar') {
+            return redirect()
+                ->back()
+                ->with('success', 'Permintaan pengantaran untuk order ini sudah dibuat.');
+        }
+
+        $order->load('invoice');
+
+        if (!$order->invoice) {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'invoice' => 'Invoice untuk order ini tidak ditemukan.',
+                ]);
+        }
+
+        if ($order->invoice->status === 'paid') {
+            return redirect()
+                ->back()
+                ->withErrors([
+                    'payment' => 'Invoice sudah lunas. Permintaan antar setelah pembayaran harus diproses oleh kasir.',
+                ]);
+        }
+
+        $outletLat = -7.428940;
+        $outletLng = 109.337930;
+
+        $distance = $this->calculateDistance(
+            $outletLat,
+            $outletLng,
+            (float) $validated['latitude'],
+            (float) $validated['longitude']
+        );
+
+        $deliveryFee = $this->calculateDeliveryFee($distance);
+
+        $fullAddress = $validated['address_main']
+            . ' (Detail: '
+            . $validated['address_detail']
+            . ')';
+
+        DB::transaction(function () use ($order, $customer, $validated, $distance, $deliveryFee, $fullAddress) {
+            DeliveryRequest::create([
+                'customer_id' => $customer->id,
+                'laundry_order_id' => $order->id,
+                'service_id' => $order->service_id,
+                'type' => 'antar',
+                'address' => $fullAddress,
+                'distance_km' => $distance,
+                'fee' => $deliveryFee,
+                'status' => 'menunggu_konfirmasi',
+                'note' => $validated['note'] ?? null,
+                'scheduled_at' => now(),
+            ]);
+
+            $invoice = $order->invoice;
+
+            $newTotal = ($invoice->subtotal ?? 0)
+                + $deliveryFee
+                - ($invoice->point_discount ?? 0);
+
+            $invoice->update([
+                'delivery_fee' => $deliveryFee,
+                'total_amount' => max(0, $newTotal),
+            ]);
+
+            $order->update([
+                'delivery_option' => 'diantar',
+                'delivery_fee' => $deliveryFee,
+                'total_price' => max(0, ($order->subtotal ?? 0) + $deliveryFee - ($order->discount ?? 0)),
+            ]);
+        });
+
+        return redirect()
+            ->route('portal.orders.show', $order)
+            ->with(
+                'success',
+                'Permintaan antar berhasil dikirim. Jarak tercatat: '
+                . $distance
+                . ' KM. Biaya antar: Rp '
+                . number_format($deliveryFee, 0, ',', '.')
+                . '.'
+            );
+    }
+
+    private function calculateDistance(
+        float $fromLat,
+        float $fromLng,
+        float $toLat,
+        float $toLng
+    ): float {
+        $earthRadius = 6371;
+
+        $latFrom = deg2rad($fromLat);
+        $lonFrom = deg2rad($fromLng);
+        $latTo = deg2rad($toLat);
+        $lonTo = deg2rad($toLng);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2)
+            + cos($latFrom) * cos($latTo)
+            * sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return round($earthRadius * $c, 2);
+    }
+
+    private function calculatePickupFee(float $distanceKm): float
+    {
+        $basePickupFee = Setting::getNumber('pickup_fee', 0);
+        $freeDistance = Setting::getNumber('free_delivery_distance_km', 3);
+        $feePerKm = Setting::getNumber('delivery_fee_per_km', 2000);
+
+        if ($distanceKm <= $freeDistance) {
+            return $basePickupFee;
+        }
+
+        $chargedDistance = ceil($distanceKm - $freeDistance);
+
+        return $basePickupFee + ($chargedDistance * $feePerKm);
+    }
+
+    private function calculateDeliveryFee(float $distanceKm): float
+    {
+        $freeDistance = Setting::getNumber('free_delivery_distance_km', 3);
+        $feePerKm = Setting::getNumber('delivery_fee_per_km', 2000);
+
+        if ($distanceKm <= $freeDistance) {
+            return 0;
+        }
+
+        $chargedDistance = ceil($distanceKm - $freeDistance);
+
+        return $chargedDistance * $feePerKm;
     }
 }

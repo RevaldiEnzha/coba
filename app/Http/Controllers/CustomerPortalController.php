@@ -7,7 +7,7 @@ use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-
+use App\Models\Setting;
 class CustomerPortalController extends Controller
 {
     public function index()
@@ -59,7 +59,15 @@ class CustomerPortalController extends Controller
 
         $order->load(['service', 'invoice', 'statusHistories']);
 
-        return view('portal.show', compact('order', 'customer'));
+        $freeDeliveryDistance = Setting::getNumber('free_delivery_distance_km', 3);
+        $deliveryFeePerKm = Setting::getNumber('delivery_fee_per_km', 2000);
+
+        return view('portal.show', compact(
+            'order',
+            'customer',
+            'freeDeliveryDistance',
+            'deliveryFeePerKm'
+        ));
     }
 
     public function active()

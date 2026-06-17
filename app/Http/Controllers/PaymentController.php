@@ -8,6 +8,7 @@ use App\Models\PointTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Setting;
 
 class PaymentController extends Controller
 {
@@ -70,19 +71,19 @@ class PaymentController extends Controller
             $customer = $order->customer;
 
             $pointsUsed = (int) ($validated['points_used'] ?? 0);
-
-            /*
-             * Aturan sementara:
-             * 1 poin = Rp 100 diskon.
-             * Nanti bisa dipindah ke tabel settings/konfigurasi.
-             */
-            $pointValue = 100;
-            $availablePoints = $customer->points_balance ?? 0;
+            $availablePoints = (int) ($customer->points_balance ?? 0);
             $validPointsUsed = min($pointsUsed, $availablePoints);
 
+            $pointValue = Setting::getNumber('point_value_rupiah', 100);
             $pointDiscount = $validPointsUsed * $pointValue;
-            $baseTotal = $invoice->subtotal + $invoice->delivery_fee;
+
+            $baseTotal = ($invoice->subtotal ?? 0) + ($invoice->delivery_fee ?? 0);
             $finalTotal = max(0, $baseTotal - $pointDiscount);
+
+            $pointEarnNominal = Setting::getNumber('point_earn_nominal', 10000);
+            $earnedPoints = $pointEarnNominal > 0
+                ? (int) floor($finalTotal / $pointEarnNominal)
+                : 0;
 
             $invoice->update([
                 'point_discount' => $pointDiscount,
@@ -114,12 +115,6 @@ class PaymentController extends Controller
                     'description' => 'Penukaran poin untuk pembayaran invoice ' . $invoice->invoice_code,
                 ]);
             }
-
-            /*
-             * Aturan sementara:
-             * pelanggan mendapat 1 poin setiap Rp 10.000 pembayaran.
-             */
-            $earnedPoints = (int) floor($finalTotal / 10000);
 
             if ($earnedPoints > 0) {
                 $customer->increment('points_balance', $earnedPoints);
