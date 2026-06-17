@@ -10,7 +10,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DeliveryRequestController;
 use App\Http\Controllers\CustomerPortalController;
-
+use App\Http\Controllers\SettingController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -50,6 +50,9 @@ Route::middleware(['auth', 'role:admin,kasir'])->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
 
 
@@ -60,7 +63,7 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/portal/points', [CustomerPortalController::class, 'points'])->name('portal.points');
     Route::get('/portal/account', [CustomerPortalController::class, 'account'])->name('portal.account');
     Route::post('/portal/account/update', [CustomerPortalController::class, 'updateAccount'])->name('portal.account.update');
-    
+
     // Route Halaman Buat Pesanan Baru
     Route::get('/portal/pickups/create', [CustomerPortalController::class, 'createPickup'])->name('portal.pickups.create');
 

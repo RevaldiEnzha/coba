@@ -49,6 +49,11 @@
                     <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
                         Laporan Keuangan
                     </a>
+
+                    <a href="{{ route('settings.index') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                        <span class="menu-icon">⚙</span>
+                        Konfigurasi
+                    </a>
                 @endif
             </nav>
 

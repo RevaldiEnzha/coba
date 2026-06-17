@@ -21,11 +21,11 @@
 <div class="customer-toolbar" style="margin-bottom: 16px;">
     <form method="GET" action="{{ route('delivery.index') }}" style="display: flex; gap: 8px;">
         <div style="position: relative; flex: 1; max-width: 400px;">
-            <input 
-                type="text" 
-                name="search" 
-                value="{{ request('search') }}" 
-                placeholder="Cari nama pelanggan, ID, atau alamat..." 
+            <input
+                type="text"
+                name="search"
+                value="{{ request('search') }}"
+                placeholder="Cari nama pelanggan, ID, atau alamat..."
                 style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px 0 36px; outline: none;"
             >
             <span style="position: absolute; left: 12px; top: 12px; color: #94a3b8;">⌕</span>
@@ -100,17 +100,30 @@
                         <td><span class="delivery-status {{ $statusClass }}">{{ $statusLabel }}</span></td>
                         <td>
                             @if($request->laundry_order_id)
-                                <a href="{{ route('orders.show', $request->laundry_order_id) }}" class="delivery-order-link" style="color: #10b981; font-weight: bold; text-decoration: none;">✓ Transaksi Dibuat</a>
+                                <a href="{{ route('orders.show', $request->laundry_order_id) }}" class="delivery-order-link">
+                                    Lihat Transaksi
+                                </a>
                             @elseif($request->status === 'selesai')
-                                <form method="POST" action="{{ route('delivery.confirm', $request) }}" class="delivery-confirm-form" style="display: flex; gap: 6px; flex-direction: column;">
+                                <form method="POST" action="{{ route('delivery.confirm', $request) }}" class="delivery-confirm-form">
                                     @csrf
-                                    <input type="number" step="0.1" min="0.1" name="amount" placeholder="{{ ($request->service->type ?? 'kiloan') === 'kiloan' ? 'Berat (kg)' : 'Jumlah (item)' }}" required style="width: 110px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;">
-                                    <button type="submit" style="background: #0ea5e9; color: white; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">Buat Transaksi</button>
+
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0.1"
+                                        name="amount"
+                                        placeholder="{{ ($request->service->type ?? 'kiloan') === 'kiloan' ? 'Berat kg' : 'Jumlah item' }}"
+                                        required
+                                    >
+
+                                    <button type="submit">
+                                        Buat Transaksi
+                                    </button>
                                 </form>
                             @elseif($request->status === 'dibatalkan')
-                                <span style="color: #ef4444; font-size: 13px; font-weight: 600;">Dibatalkan</span>
+                                <span class="delivery-muted-text">Dibatalkan</span>
                             @else
-                                <span style="color: #f59e0b; font-size: 12px; font-weight: 600;">⏳ Menunggu Cucian Tiba</span>
+                                <span class="delivery-muted-text">Selesaikan jemput dulu</span>
                             @endif
                         </td>
                         <td>
@@ -131,7 +144,7 @@
             </tbody>
         </table>
     </div>
-    
+
     <div style="margin-top: 16px;">
         {{ $pickups->links('pagination::bootstrap-4') }}
     </div>
@@ -224,19 +237,19 @@ function openTab(evt, tabName) {
         tablinks[i].style.color = "#64748b";
         tablinks[i].style.fontWeight = "600";
         tablinks[i].style.borderBottom = "3px solid transparent";
-        
+
         var badge = tablinks[i].querySelector('span');
         badge.style.background = "#f1f5f9";
         badge.style.color = "#475569";
     }
 
     document.getElementById(tabName).style.display = "block";
-    
+
     evt.currentTarget.className += " active";
     evt.currentTarget.style.color = "#0ea5e9";
     evt.currentTarget.style.fontWeight = "700";
     evt.currentTarget.style.borderBottom = "3px solid #0ea5e9";
-    
+
     var activeBadge = evt.currentTarget.querySelector('span');
     activeBadge.style.background = "#e0f2fe";
     activeBadge.style.color = "#0284c7";
@@ -264,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-top: 10px;
         margin-bottom: 0;
     }
-    
+
     .page-item .page-link {
         position: relative;
         display: block;
@@ -278,14 +291,14 @@ document.addEventListener('DOMContentLoaded', function() {
         font-weight: 600;
         transition: all 0.2s ease-in-out;
     }
-    
+
     /* Warna tombol saat kursor diarahkan (hover) */
     .page-item:not(.active):not(.disabled) .page-link:hover {
         background-color: #f8fafc;
         color: #0ea5e9;
         border-color: #bae6fd;
     }
-    
+
     /* Warna tombol untuk halaman yang sedang aktif */
     .page-item.active .page-link {
         z-index: 3;
@@ -294,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         border-color: #0ea5e9;
         box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
     }
-    
+
     /* Tampilan tombol yang tidak bisa diklik (misal tombol '<' di halaman pertama) */
     .page-item.disabled .page-link {
         color: #94a3b8;

@@ -6,7 +6,6 @@ use App\Models\DeliveryRequest;
 use App\Models\Invoice;
 use App\Models\LaundryOrder;
 use App\Models\OrderStatusHistory;
-use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +35,7 @@ class DeliveryRequestController extends Controller
             ->latest()
             // Menggunakan nama page khusus 'pickup_page' agar tidak bentrok
             ->paginate(5, ['*'], 'pickup_page')
-            ->appends(request()->query()); 
+            ->appends(request()->query());
 
         // 2. Query untuk tabel ANTAR (Batas 5 per halaman)
         $deliveries = DeliveryRequest::with(['customer.user', 'laundryOrder'])
@@ -85,9 +84,9 @@ class DeliveryRequestController extends Controller
 
         // 2. Rumus Haversine: Menghitung Jarak Jemput (KM)
         $outletLat = -7.428940;
-        $outletLng = 109.337930; 
+        $outletLng = 109.337930;
 
-        $earthRadius = 6371; 
+        $earthRadius = 6371;
         $latFrom = deg2rad((float) $outletLat);
         $lonFrom = deg2rad((float) $outletLng);
         $latTo = deg2rad((float) $request->latitude);
@@ -100,14 +99,14 @@ class DeliveryRequestController extends Controller
              cos($latFrom) * cos($latTo) *
              sin($lonDelta / 2) * sin($lonDelta / 2);
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-        
+
         $distance = round($earthRadius * $c, 2);
 
         // 3. Logika Biaya Jemput
         // Contoh: Gratis 2 KM pertama, selebihnya Rp 3.000 / KM
         $fee = 0;
         if ($distance > 2) {
-            $kelebihanKm = ceil($distance - 2); 
+            $kelebihanKm = ceil($distance - 2);
             $fee = $kelebihanKm * 3000;
         }
 
@@ -161,9 +160,11 @@ class DeliveryRequestController extends Controller
         }
 
         if ($deliveryRequest->status !== 'selesai') {
-            return back()->withErrors([
-                'amount' => 'Transaksi gagal dibuat. Status penjemputan harus "Selesai Dijemput" terlebih dahulu agar cucian bisa ditimbang dengan akurat.'
-            ]);
+            return redirect()
+                ->route('delivery.index')
+                ->withErrors([
+                    'status' => 'Permintaan jemput harus berstatus selesai sebelum dibuat menjadi transaksi.',
+                ]);
         }
 
         $validated = $request->validate([
@@ -171,12 +172,15 @@ class DeliveryRequestController extends Controller
         ]);
 
         $deliveryRequest->load(['customer', 'service']);
+
         $service = $deliveryRequest->service;
 
         if (!$service) {
-            return back()->withErrors([
-                'service_id' => 'Layanan pada permintaan jemput tidak ditemukan.',
-            ]);
+            return redirect()
+                ->route('delivery.index')
+                ->withErrors([
+                    'service_id' => 'Layanan pada permintaan jemput tidak ditemukan.',
+                ]);
         }
 
         $amount = (float) $validated['amount'];
@@ -236,12 +240,12 @@ class DeliveryRequestController extends Controller
 
             $deliveryRequest->update([
                 'laundry_order_id' => $order->id,
-                'status' => 'diproses',
+                'status' => 'selesai',
             ]);
         });
 
         return redirect()
             ->route('delivery.index')
-            ->with('success', 'Permintaan jemput berhasil dikonfirmasi menjadi transaksi resmi.');
+            ->with('success', 'Permintaan jemput berhasil dibuat menjadi transaksi resmi.');
     }
 }
