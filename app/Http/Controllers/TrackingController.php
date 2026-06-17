@@ -39,7 +39,8 @@ class TrackingController extends Controller
             'dicuci' => 'Sedang Dicuci',
             'dijemur' => 'Sedang Dijemur',
             'disetrika' => 'Sedang Disetrika',
-            'siap_diambil' => 'Siap Diambil / Diantar'
+            'siap_diambil' => 'Siap Diambil / Diantar',
+            'selesai' => 'Selesai (Sudah Diserahkan)'
         ];
 
         return view('tracking.index', compact('orders', 'search', 'statusOptions'));
