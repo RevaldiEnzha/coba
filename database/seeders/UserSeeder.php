@@ -22,6 +22,17 @@ class UserSeeder extends Seeder
             ]
         );
 
+        // Kasir
+        User::updateOrCreate(
+            ['username' => 'kasir'],
+            [
+                'name' => 'Kasir',
+                'email' => 'kasir@gmail.com',
+                'password' => Hash::make('123123123'),
+                'role' => 'kasir',
+            ]
+        );
+
         // Customer / Pelanggan
         $pelanggan = User::updateOrCreate(
             ['username' => 'pelanggan'],
