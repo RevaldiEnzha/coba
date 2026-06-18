@@ -19,7 +19,7 @@
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari layanan..." style="height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; outline: none;">
         <button type="submit" style="height: 40px; background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 16px; cursor: pointer;">Cari</button>
     </form>
-    <button type="button" id="openCreateModalBtn" style="background: #0ea5e9; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+    <button type="button" id="openCreateModalBtn" style="height: 42px; background: #0ea5e9; color: white; border: none; padding: 0 20px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer;">
         + Tambah Layanan
     </button>
 </div>
@@ -50,12 +50,12 @@
                     </td>
                     <td style="padding: 12px 8px;">
                         <div style="display: flex; gap: 8px;">
-                            <button type="button" class="open-edit-modal" style="background: none; border: none; cursor: pointer; font-size: 16px;" 
-                                data-id="{{ $service->id }}" 
-                                data-name="{{ $service->name }}" 
-                                data-type="{{ $service->type }}" 
-                                data-price="{{ $service->price }}" 
-                                data-hours="{{ $service->estimated_hours }}" 
+                            <button type="button" class="open-edit-modal" style="background: none; border: none; cursor: pointer; font-size: 16px;"
+                                data-id="{{ $service->id }}"
+                                data-name="{{ $service->name }}"
+                                data-type="{{ $service->type }}"
+                                data-price="{{ $service->price }}"
+                                data-hours="{{ $service->estimated_hours }}"
                                 data-active="{{ $service->is_active }}">
                                 ✎
                             </button>
@@ -143,13 +143,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalTitle').innerText = 'Edit Layanan';
             form.action = `${baseUrl}/${this.dataset.id}`;
             document.getElementById('formMethod').value = 'PUT';
-            
+
             document.getElementById('serviceName').value = this.dataset.name;
             document.getElementById('serviceType').value = this.dataset.type;
             document.getElementById('servicePrice').value = this.dataset.price;
             document.getElementById('serviceHours').value = this.dataset.hours;
             document.getElementById('serviceActive').checked = this.dataset.active == "1";
-            
+
             modal.style.display = 'flex';
         });
     });
