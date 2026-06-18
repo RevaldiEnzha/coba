@@ -50,7 +50,7 @@
                     </td>
                     <td style="padding: 12px 8px;">
                         <div style="display: flex; gap: 8px;">
-                            <button type="button" class="open-edit-modal" style="background: none; border: none; cursor: pointer; font-size: 16px;"
+                            <button type="button" class="edit-action open-edit-modal" style="background: none; border: none; cursor: pointer; font-size: 16px;"
                                 data-id="{{ $service->id }}"
                                 data-name="{{ $service->name }}"
                                 data-type="{{ $service->type }}"

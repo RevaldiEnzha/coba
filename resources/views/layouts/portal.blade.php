@@ -16,7 +16,7 @@
 
             <nav class="sidebar-menu">
                 <a href="{{ route('portal.dashboard') }}" class="{{ request()->routeIs('portal.dashboard') ? 'active' : '' }}">
-                    <span class="menu-icon">▦</span>
+                    <span class="menu-icon">🖥️</span>
                     Dashboard
                 </a>
                 <a href="{{ route('portal.pickups.create') }}" class="{{ request()->routeIs('portal.pickups.create') ? 'active' : '' }}">
@@ -28,7 +28,7 @@
                     Pesanan Aktif
                 </a>
                 <a href="{{ route('portal.history') }}" class="{{ request()->routeIs('portal.history') ? 'active' : '' }}">
-                    <span class="menu-icon">📋</span>
+                    <span class="menu-icon">📜</span>
                     Riwayat
                 </a>
                 <a href="{{ route('portal.points') }}" class="{{ request()->routeIs('portal.points') ? 'active' : '' }}">
