@@ -13,7 +13,7 @@
 <div class="customer-toolbar">
     <form method="GET" action="{{ route('customers.index') }}" class="customer-search-form">
         <div class="customer-search-box">
-            <span class="search-icon">⌕</span>
+            {{-- <span class="search-icon">⌕</span> --}}
             <input
                 type="text"
                 name="search"

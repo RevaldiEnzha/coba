@@ -26,9 +26,9 @@
                 name="search"
                 value="{{ request('search') }}"
                 placeholder="Cari nama pelanggan, ID, atau alamat..."
-                style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px 0 36px; outline: none;"
+                style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px 0 12px; outline: none;"
             >
-            <span style="position: absolute; left: 12px; top: 12px; color: #94a3b8;">⌕</span>
+            {{-- <span style="position: absolute; left: 12px; top: 12px; color: #94a3b8;">⌕</span> --}}
         </div>
         <button type="submit" style="height: 42px; background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer;">
             Cari
