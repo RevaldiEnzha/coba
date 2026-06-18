@@ -1107,6 +1107,19 @@ textarea.form-control {
     }
 }
 
+@media (max-width: 1180px) {
+    .customer-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .customer-search-box,
+    .customer-add-btn {
+        justify-content: center;
+        width: 100%;
+    }
+}
+
 /*
    CUSTOMER MODAL FORM
  */

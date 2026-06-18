@@ -15,13 +15,20 @@
 @endif
 
 <div class="customer-toolbar" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-    <form method="GET" action="{{ route('services.index') }}">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari layanan..." style="height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; outline: none;">
+    <form method="GET" action="{{ route('services.index') }}" style="display: flex; gap: 8px;">
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari layanan..." style="width: 100%; height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; outline: none;">
         <button type="submit" style="height: 40px; background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 16px; cursor: pointer;">Cari</button>
+        @if(request('search'))
+            <a href="{{ route('services.index') }}" style="height: 42px; display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 16px; color: #64748b; text-decoration: none; font-weight: 600; background: #f8fafc;">
+                Reset
+            </a>
+        @endif
     </form>
+
     <button type="button" id="openCreateModalBtn" style="height: 42px; background: #0ea5e9; color: white; border: none; padding: 0 20px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer;">
         + Tambah Layanan
     </button>
+
 </div>
 
 <div class="customer-table-card" style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
