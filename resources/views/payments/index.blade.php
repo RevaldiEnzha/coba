@@ -10,14 +10,24 @@
     <div class="alert-success">{{ session('success') }}</div>
 @endif
 
-<div class="customer-toolbar" style="margin-bottom: 20px;">
-    <form method="GET" action="{{ route('payments.index') }}" style="display: flex; gap: 8px;">
-        <div style="position: relative; flex: 1; max-width: 400px;">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Kode INV, ID Pesanan, atau Nama..." style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; outline: none;">
+<div class="customer-toolbar">
+    <form method="GET" action="{{ route('payments.index') }}" class="customer-search-form">
+        <div class="customer-search-box">
+            {{-- <span class="search-icon">⌕</span> --}}
+            <input
+                type="text"
+                name="search"
+                value="{{ request('search') }}"
+                placeholder="Cari pembayaran (kode INV, no order, nama pelanggan)..."
+            >
         </div>
-        <button type="submit" style="height: 42px; background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer;">Cari</button>
+        <button type="submit" class="customer-search-cbtn">
+            Cari
+        </button>
         @if(request('search'))
-            <a href="{{ route('payments.index') }}" style="height: 42px; display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 16px; color: #64748b; text-decoration: none; font-weight: 600; background: #f8fafc;">Reset</a>
+            <a href="{{ route('payments.index') }}" class="customer-search-cbtn-reset">
+                Reset
+            </a>
         @endif
     </form>
 </div>

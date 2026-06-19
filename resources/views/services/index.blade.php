@@ -14,12 +14,22 @@
     <div class="alert-error" style="margin-bottom: 20px; padding: 14px; border-radius: 10px; background: #fee2e2; color: #991b1b;">{{ session('error') }}</div>
 @endif
 
-<div class="customer-toolbar" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-    <form method="GET" action="{{ route('services.index') }}" style="display: flex; gap: 8px;">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari layanan..." style="width: 100%; height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px; outline: none;">
-        <button type="submit" style="height: 40px; background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 16px; cursor: pointer;">Cari</button>
+<div class="customer-toolbar">
+    <form method="GET" action="{{ route('services.index') }}" class="customer-search-form">
+        <div class="customer-search-box">
+            {{-- <span class="search-icon">⌕</span> --}}
+            <input
+                type="text"
+                name="search"
+                value="{{ request('search') }}"
+                placeholder="Cari layanan (nama layanan)..."
+            >
+        </div>
+        <button type="submit" class="customer-search-cbtn">
+            Cari
+        </button>
         @if(request('search'))
-            <a href="{{ route('services.index') }}" style="height: 42px; display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 16px; color: #64748b; text-decoration: none; font-weight: 600; background: #f8fafc;">
+            <a href="{{ route('services.index') }}" class="customer-search-cbtn-reset">
                 Reset
             </a>
         @endif

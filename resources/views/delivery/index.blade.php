@@ -18,23 +18,22 @@
     </div>
 @endif
 
-<div class="customer-toolbar" style="margin-bottom: 16px;">
-    <form method="GET" action="{{ route('delivery.index') }}" style="display: flex; gap: 8px;">
-        <div style="position: relative; flex: 1; max-width: 400px;">
+<div class="customer-toolbar" style="margin-bottom: 20px;">
+    <form method="GET" action="{{ route('delivery.index') }}" class="customer-search-form">
+        <div class="customer-search-box">
+            {{-- <span class="search-icon">⌕</span> --}}
             <input
                 type="text"
                 name="search"
                 value="{{ request('search') }}"
-                placeholder="Cari nama pelanggan, ID, atau alamat..."
-                style="width: 100%; height: 42px; border-radius: 8px; border: 1px solid #cbd5e1; padding: 0 12px 0 12px; outline: none;"
+                placeholder="Cari permintaan (ID, nama pelanggan, alamat)..."
             >
-            {{-- <span style="position: absolute; left: 12px; top: 12px; color: #94a3b8;">⌕</span> --}}
         </div>
-        <button type="submit" style="height: 42px; background: #0f172a; color: white; border: none; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer;">
+        <button type="submit" class="customer-search-cbtn">
             Cari
         </button>
         @if(request('search'))
-            <a href="{{ route('delivery.index') }}" style="height: 42px; display: inline-flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 16px; color: #64748b; text-decoration: none; font-weight: 600; background: #f8fafc;">
+            <a href="{{ route('delivery.index') }}" class="customer-search-cbtn-reset">
                 Reset
             </a>
         @endif

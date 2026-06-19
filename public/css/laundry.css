@@ -955,6 +955,8 @@ textarea.form-control {
 
 .customer-search-form {
     margin: 0;
+    display: flex;
+    gap: 8px;
 }
 
 .customer-search-box {
@@ -986,6 +988,30 @@ textarea.form-control {
 
 .customer-search-box input::placeholder {
     color: #94a3b8;
+}
+
+.customer-search-cbtn {
+    height: 42px;
+    background: #0f172a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.customer-search-cbtn-reset {
+    height: 42px;
+    align-items: center;
+    display: inline-flex;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0 16px;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 600;
+    background: #f8fafc;
 }
 
 .customer-add-btn {
@@ -1118,6 +1144,10 @@ textarea.form-control {
     .customer-add-btn {
         justify-content: center;
         width: 100%;
+    }
+
+    .customer-search-cbtn {
+        width: 30%;
     }
 }
 
