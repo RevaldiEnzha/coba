@@ -1001,6 +1001,7 @@ textarea.form-control {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    cursor: pointer;
 }
 
 .customer-add-btn:hover {
@@ -1674,13 +1675,13 @@ textarea.form-control {
 }
 
 .transaction-add-btn {
-    height: 40px;
+    height: 42px;
     background: #0ea5e9;
     color: #ffffff;
     border: 0;
-    border-radius: 8px;
-    padding: 0 16px;
-    font-size: 13px;
+    border-radius: 9px;
+    padding: 0 20px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;

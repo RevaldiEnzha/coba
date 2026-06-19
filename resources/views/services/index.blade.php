@@ -25,8 +25,9 @@
         @endif
     </form>
 
-    <button type="button" id="openCreateModalBtn" style="height: 42px; background: #0ea5e9; color: white; border: none; padding: 0 20px; border-radius: 9px; font-weight: 700; font-size: 14px; cursor: pointer;">
-        + Tambah Layanan
+    <button type="button" id="openCreateModalBtn" class="customer-add-btn" >
+        <span>+</span>
+        Tambah Layanan
     </button>
 
 </div>
